@@ -141,7 +141,7 @@ fun DocumentUploadScreen(
         uri?.let {
             selectedDocument = SelectedDocument(
                 uri = it,
-                name = it.lastPathSegment?.substringAfterLast("/") ?: "document.pdf",
+                name = it.lastPathSegment ?: "document.pdf",
                 type = DocumentType.PDF,
             )
             uploadState = UploadState.Idle
@@ -155,7 +155,7 @@ fun DocumentUploadScreen(
         uri?.let {
             selectedDocument = SelectedDocument(
                 uri = it,
-                name = it.lastPathSegment?.substringAfterLast("/") ?: "image",
+                name = it.lastPathSegment ?: "image",
                 type = DocumentType.IMAGE,
             )
             uploadState = UploadState.Idle
@@ -215,13 +215,13 @@ fun DocumentUploadScreen(
                     },
                 )
 
-                // Analyse button
+                // Analyze button
                 AnimatedVisibility(
                     visible = selectedDocument != null && uploadState is UploadState.Idle,
                     enter = fadeIn() + slideInVertically { it / 2 },
                     exit = fadeOut() + slideOutVertically { it / 2 },
                 ) {
-                    AnalyseButton(
+                    AnalyzeButton(
                         onClick = {
                             scope.launch {
                                 runAnalysis(
@@ -528,11 +528,11 @@ private fun PickerButton(
 }
 
 // ---------------------------------------------------------------------------
-// Analyse button
+// Analyze button
 // ---------------------------------------------------------------------------
 
 @Composable
-private fun AnalyseButton(onClick: () -> Unit) {
+private fun AnalyzeButton(onClick: () -> Unit) {
     Button(
         onClick = onClick,
         modifier = Modifier
@@ -544,7 +544,7 @@ private fun AnalyseButton(onClick: () -> Unit) {
         ),
     ) {
         Text(
-            text = "Analyse Document",
+            text = "Analyze Document",
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
         )
@@ -784,6 +784,6 @@ private suspend fun runAnalysis(
         )
     }
     onComplete(
-        "Document analysed successfully. Key findings: 3 statutory citations identified (§ 12-301, § 14-108, § 22-2001), 2 procedural code references verified, and 1 contractual clause flagged for legal review."
+        "Document analyzed successfully. Key findings: 3 statutory citations identified (§ 12-301, § 14-108, § 22-2001), 2 procedural code references verified, and 1 contractual clause flagged for legal review."
     )
 }
