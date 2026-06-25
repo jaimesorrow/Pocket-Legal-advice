@@ -128,11 +128,7 @@ interface LegalActionDao {
         }
 
         upsertViolations(seedData.map(ViolationSeed::violation))
-        upsertActionSteps(
-            seedData
-                .flatMap(ViolationSeed::steps)
-                .sortedBy(ActionStep::stepNumber)
-        )
+        upsertActionSteps(seedData.flatMap(ViolationSeed::steps))
     }
 }
 
@@ -145,7 +141,7 @@ abstract class LegalActionDatabase : RoomDatabase() {
     abstract fun legalActionDao(): LegalActionDao
 
     data class Configuration(
-        val databaseName: String = "legal-actions.db",
+        val databaseName: String = "legal_actions.db",
         val inMemory: Boolean = false,
         val prepopulatedAssetPath: String? = null,
         val seedDataProvider: suspend () -> List<ViolationSeed> = { emptyList() }
@@ -209,15 +205,21 @@ abstract class LegalActionDatabase : RoomDatabase() {
                 }
             }
 
-            return builder
-                .setJournalMode(JournalMode.WRITE_AHEAD_LOGGING)
-                .fallbackToDestructiveMigrationOnDowngrade()
-                .addCallback(
+            val configuredBuilder = builder.apply {
+                if (!configuration.inMemory) {
+                    setJournalMode(JournalMode.WRITE_AHEAD_LOGGING)
+                }
+
+                fallbackToDestructiveMigrationOnDowngrade()
+                addCallback(
                     SeedCallback(
                         databaseHolder = instanceHolder,
                         seedDataProvider = configuration.seedDataProvider
                     )
                 )
+            }
+
+            return configuredBuilder
                 .build()
                 .also { instanceHolder.database = it }
         }
