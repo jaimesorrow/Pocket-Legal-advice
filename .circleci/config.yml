@@ -1,0 +1,140 @@
+version: 2.1
+
+# ──────────────────────────────────────────────
+# Executors
+# ──────────────────────────────────────────────
+executors:
+  android-large:
+    docker:
+      - image: cimg/android:2024.04
+    resource_class: large          # 4 vCPUs / 8 GB — matches Gradle parallelism
+    environment:
+      GRADLE_OPTS: >-
+        -Dorg.gradle.jvmargs=-Xmx4096m
+        -Dorg.gradle.parallel=true
+        -Dorg.gradle.caching=true
+        -Dkotlin.incremental=false
+
+# ──────────────────────────────────────────────
+# Reusable commands
+# ──────────────────────────────────────────────
+commands:
+  restore-gradle-cache:
+    steps:
+      - restore_cache:
+          keys:
+            # Exact match on all three files
+            - gradle-v1-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "app/build.gradle.kts" }}
+            # Fallback: wrapper + version catalog only (handles app-only dep changes)
+            - gradle-v1-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/libs.versions.toml" }}-
+            # Fallback: wrapper only (handles Gradle upgrade)
+            - gradle-v1-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-
+
+  save-gradle-cache:
+    steps:
+      - save_cache:
+          # Key matches the most specific restore key so subsequent runs hit it
+          key: gradle-v1-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "app/build.gradle.kts" }}
+          paths:
+            - ~/.gradle/caches
+            - ~/.gradle/wrapper
+
+# ──────────────────────────────────────────────
+# Jobs
+# ──────────────────────────────────────────────
+jobs:
+  lint:
+    executor: android-large
+    steps:
+      - checkout
+      - restore-gradle-cache
+      - run:
+          name: Run lint
+          command: ./gradlew lint --no-daemon
+      - save-gradle-cache
+      - store_artifacts:
+          path: app/build/reports/lint-results-debug.html
+          destination: lint-report
+
+  unit-test:
+    executor: android-large
+    steps:
+      - checkout
+      - restore-gradle-cache
+      - run:
+          name: Run unit tests
+          command: ./gradlew testDebugUnitTest --no-daemon
+      - save-gradle-cache
+      - store_test_results:
+          path: app/build/test-results
+      - store_artifacts:
+          path: app/build/reports/tests
+          destination: unit-test-report
+
+  build-debug:
+    executor: android-large
+    steps:
+      - checkout
+      - restore-gradle-cache
+      - run:
+          name: Assemble debug APK
+          command: ./gradlew assembleDebug --no-daemon
+      - save-gradle-cache
+      - store_artifacts:
+          path: app/build/outputs/apk/debug/
+          destination: debug-apk
+
+  build-release:
+    executor: android-large
+    steps:
+      - checkout
+      - restore-gradle-cache
+      - run:
+          name: Assemble release APK (minified + shrunk)
+          command: ./gradlew assembleRelease --no-daemon
+      - save-gradle-cache
+      - store_artifacts:
+          path: app/build/outputs/apk/release/
+          destination: release-apk
+
+# ──────────────────────────────────────────────
+# Workflows
+# ──────────────────────────────────────────────
+workflows:
+  # Feature / PR branches — fast feedback, no release overhead
+  pull-request:
+    jobs:
+      - lint:
+          filters:
+            branches:
+              ignore: main
+      - unit-test:
+          filters:
+            branches:
+              ignore: main
+      - build-debug:
+          filters:
+            branches:
+              ignore: main
+          requires:
+            - lint
+            - unit-test   # gate the build on quality checks
+
+  # Main branch — quality checks + full release artefact
+  main-branch:
+    jobs:
+      - lint:
+          filters:
+            branches:
+              only: main
+      - unit-test:
+          filters:
+            branches:
+              only: main
+      - build-release:
+          filters:
+            branches:
+              only: main
+          requires:
+            - lint
+            - unit-test   # release only when both checks are green
