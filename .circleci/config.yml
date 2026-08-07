@@ -1,0 +1,98 @@
+version: 2.1
+
+executors:
+  android_executor:
+    docker:
+      - image: cimg/android:2024.11
+    resource_class: large
+    environment:
+      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxMetaspaceSize=1g"
+
+commands:
+  restore_gradle_cache:
+    steps:
+      - restore_cache:
+          keys:
+            - gradle-v2-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "build.gradle.kts" }}-{{ checksum "settings.gradle.kts" }}-{{ checksum "app/build.gradle.kts" }}
+            - gradle-v2-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/libs.versions.toml" }}
+            - gradle-v2-
+
+  save_gradle_cache:
+    steps:
+      - save_cache:
+          key: gradle-v2-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "build.gradle.kts" }}-{{ checksum "settings.gradle.kts" }}-{{ checksum "app/build.gradle.kts" }}
+          paths:
+            - ~/.gradle/caches
+            - ~/.gradle/wrapper
+
+  setup_android_toolchain:
+    steps:
+      - run:
+          name: Verify Gradle wrapper
+          command: |
+            chmod +x ./gradlew
+            test -f ./gradle/wrapper/gradle-wrapper.jar
+            ./gradlew --version
+      - run:
+          name: Accept Android SDK licenses
+          command: yes | sdkmanager --licenses >/dev/null || true
+      - run:
+          name: Install Android SDK components
+          command: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+  collect_reports:
+    steps:
+      - run:
+          name: Collect CircleCI artifacts
+          when: always
+          command: |
+            mkdir -p /tmp/circleci-artifacts /tmp/circleci-test-results
+            cp -R app/build/reports /tmp/circleci-artifacts/reports 2>/dev/null || true
+            cp -R app/build/outputs /tmp/circleci-artifacts/outputs 2>/dev/null || true
+            cp -R app/build/test-results /tmp/circleci-test-results/test-results 2>/dev/null || true
+      - store_test_results:
+          path: /tmp/circleci-test-results
+      - store_artifacts:
+          path: /tmp/circleci-artifacts
+
+jobs:
+  android_pr_checks:
+    executor: android_executor
+    steps:
+      - checkout
+      - restore_gradle_cache
+      - setup_android_toolchain
+      - run:
+          name: Run PR quality gate
+          command: ./gradlew --no-daemon --stacktrace lintDebug testDebugUnitTest assembleDebug
+      - save_gradle_cache
+      - collect_reports
+
+  android_main_build:
+    executor: android_executor
+    steps:
+      - checkout
+      - restore_gradle_cache
+      - setup_android_toolchain
+      - run:
+          name: Run main branch build
+          command: ./gradlew --no-daemon --stacktrace lintDebug testDebugUnitTest assembleDebug assembleRelease
+      - save_gradle_cache
+      - collect_reports
+
+workflows:
+  pr_checks:
+    jobs:
+      - android_pr_checks:
+          filters:
+            branches:
+              ignore:
+                - main
+
+  main_branch_build:
+    jobs:
+      - android_main_build:
+          filters:
+            branches:
+              only:
+                - main
