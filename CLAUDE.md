@@ -2,6 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Required reading before changing anything
+
+- **`docs/AI-REQUIREMENTS.md`** — binding constraints on every model-backed feature. These are hard
+  rules, not guidelines; a change that violates one does not ship. Review any change against the
+  checklist at the end of that file.
+- **`docs/DESIGN.md`** — visual system, crisis-context UX principles, accessibility requirements.
+- **`docs/FEATURES.md`** — the feature set, build order, and the list of things deliberately not built.
+
 ## Project overview
 
 Pocket Legal Advice is a native Android app (Kotlin, Jetpack Compose) with package/namespace
@@ -75,6 +83,12 @@ When adding or changing anything in this pipeline, uphold the invariants the tes
    `description`/`recommendation` text (including from exception messages).
 3. An API-returned key with no DB match is excluded from the result rather than falling back to raw text.
 4. DB-sourced strings are surfaced exactly as stored (whitespace included).
+
+Beyond what the current tests cover, `docs/AI-REQUIREMENTS.md` adds pipeline obligations that are
+equally binding: violation keys are validated against a local closed enum before any DAO lookup;
+confidence below threshold abstains without querying the DAO; emergency screening runs locally before
+any network call; jurisdiction is part of the DAO lookup key rather than a post-filter; and personal
+identifiers are redacted on-device before the description reaches `LegalApiService`.
 
 ## Testing conventions
 
