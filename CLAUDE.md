@@ -9,6 +9,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   checklist at the end of that file.
 - **`docs/DESIGN.md`** — visual system, crisis-context UX principles, accessibility requirements.
 - **`docs/FEATURES.md`** — the feature set, build order, and the list of things deliberately not built.
+- **`docs/LEGAL-SOURCES.md`** — how statutes, regulations and case law enter the app, the build-time
+  ingestion architecture, and why retrieval-augmented generation over a legal corpus is explicitly
+  rejected here.
 
 ## Project overview
 
