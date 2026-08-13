@@ -15,7 +15,9 @@ production classes exist. Treat that test file as the executable spec for the `L
 pipeline when implementing it. There is also no `gradlew` wrapper script checked in yet (only
 `gradle/wrapper/gradle-wrapper.properties`, pinned to Gradle 8.11.1), and the test's dependencies
 (`io.mockk`, `kotlinx-coroutines-test`) are not yet declared in `gradle/libs.versions.toml` /
-`app/build.gradle.kts` — both need to be added before the test module will compile.
+`app/build.gradle.kts` — both need to be added before the test module will compile. `app/build.gradle.kts`'s
+`release` build type also references `app/proguard-rules.pro`, which does not exist yet either — add it
+(even as an empty file) before a release build will succeed.
 
 ## Build & test commands
 
@@ -82,8 +84,10 @@ When adding or changing anything in this pipeline, uphold the invariants the tes
   `coVerify`), and `kotlinx-coroutines-test` (`StandardTestDispatcher`, `runTest`,
   `Dispatchers.setMain`/`resetMain` in `@Before`/`@After`) for deterministic coroutine execution.
 - Test names are backtick-quoted natural-language sentences describing behavior, not method-name style.
-- Tests are grouped into numbered `// ====` banner sections by concern (initial state, loading,
-  zero-hallucination guarantees, multi-violation handling, missing DB entry, API failure, idempotency,
-  string-equality/no-mutation, key pass-through), and shared fixtures (raw API strings vs. verified DB
-  strings) are defined as top-level `private const val`s. Follow this structure for new tests in this
-  class/file rather than inlining literals per-test.
+- Tests are grouped into 11 numbered `// ====` banner sections by concern: (1) initial state,
+  (2) loading, (3) zero-hallucination guarantees, (4) DB entity as single source of truth (DAO
+  queried by key, never by raw text), (5) multi-violation handling, (6) missing DB entry, (7) API
+  failure, (8) idempotency (second `analyzeSituation` call fully replaces the first), (9) empty API
+  response, (10) exact string equality/no mutation, and (11) violation key pass-through. Shared
+  fixtures (raw API strings vs. verified DB strings) are defined as top-level `private const val`s.
+  Follow this structure for new tests in this class/file rather than inlining literals per-test.
