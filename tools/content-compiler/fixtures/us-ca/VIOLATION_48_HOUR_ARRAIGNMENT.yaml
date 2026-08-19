@@ -1,0 +1,66 @@
+# EXAMPLE ONLY — NOT REVIEWED, NOT SHIPPABLE.
+#
+# This file exists to demonstrate the authoring format and exercise the compiler. The `status:
+# EXAMPLE` line makes the compiler refuse to build it into a bundle unless --allow-examples is
+# passed, which a production build never does.
+#
+# The legal content below has NOT been verified by a licensed attorney. Do not copy it into
+# content/ and do not treat it as accurate. See docs/LEGAL-SOURCES.md for why the plausible-looking
+# version of this text in the existing test fixture is, in fact, wrong.
+
+status: EXAMPLE
+
+violation_key: VIOLATION_48_HOUR_ARRAIGNMENT
+jurisdiction: US-CA
+content_version: 1
+
+description: >-
+  After the police arrest you without a warrant, a judge must decide quickly whether there was
+  a good reason to hold you. In most cases this has to happen within 48 hours of your arrest.
+  If you waited longer than that, your rights may have been violated.
+
+action_steps:
+  - Ask for a copy of your booking record. It shows the exact date and time you were arrested.
+  - Tell your lawyer how long you waited before you first saw a judge.
+  - Write down anything you told the police after the deadline passed, and when you told them.
+  - Keep the names and badge numbers of any officers you spoke with during that time.
+
+authorities:
+  - type: CASE
+    citation: County of Riverside v. McLaughlin, 500 U.S. 44 (1991)
+    title: >-
+      A probable cause determination within 48 hours of a warrantless arrest generally
+      satisfies the promptness requirement; beyond that the burden shifts to the government.
+    official_url: https://www.courtlistener.com/opinion/112594/county-of-riverside-v-mclaughlin/
+    source_system: courtlistener
+    source_id: "112594"
+    version_label: 500 U.S. 44 (1991)
+    effective_date: 1991-05-13
+    retrieved_at: 2026-08-19
+    text_hash: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+
+  - type: CASE
+    citation: Gerstein v. Pugh, 420 U.S. 103 (1975)
+    title: >-
+      The Fourth Amendment requires a prompt judicial determination of probable cause before
+      extended pretrial detention. Note that Gerstein did not itself set the 48-hour figure.
+    official_url: https://www.courtlistener.com/opinion/109168/gerstein-v-pugh/
+    source_system: courtlistener
+    source_id: "109168"
+    version_label: 420 U.S. 103 (1975)
+    effective_date: 1975-02-18
+    retrieved_at: 2026-08-19
+    text_hash: "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+
+deadline:
+  unit: HOURS
+  amount: 48
+  trigger: ARREST
+  lost_if_missed: >-
+    Once this window closes it gets much harder to challenge how long you were held,
+    and to question anything you said to police after it passed.
+
+authored_by: EXAMPLE — not authored by counsel
+reviewed_by: EXAMPLE — not reviewed by counsel
+reviewed_at: 2026-08-19
+review_by: 2026-12-19

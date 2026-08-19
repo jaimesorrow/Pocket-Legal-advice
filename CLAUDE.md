@@ -28,6 +28,26 @@ pipeline when implementing it. There is also no `gradlew` wrapper script checked
 (`io.mockk`, `kotlinx-coroutines-test`) are not yet declared in `gradle/libs.versions.toml` /
 `app/build.gradle.kts` — both need to be added before the test module will compile.
 
+## Content compiler
+
+Verified legal content is authored as YAML under `content/<jurisdiction>/` and compiled into the app's
+content bundle plus the generated closed violation-key enum. Runs on Python 3.11 + PyYAML only — no
+JVM or Android SDK, so content authors don't need an Android toolchain.
+
+```
+python3 tools/content-compiler/compile_content.py --check    # validate, write nothing
+python3 tools/content-compiler/compile_content.py            # build bundle + ViolationKey.kt
+python3 tools/content-compiler/compile_content.py --strict   # CI: warnings are failures
+python3 tools/content-compiler/test_compile_content.py       # 38 tests, stdlib unittest
+```
+
+Outputs (both generated — never hand-edit):
+- `app/src/main/assets/legal-content.json`
+- `app/src/main/java/com/pocketlegal/advice/data/local/ViolationKey.kt`
+
+Both come from the same source so the classifier vocabulary and the verified content cannot drift.
+See `tools/content-compiler/README.md` and `SCHEMA.md`.
+
 ## Build & test commands
 
 No `gradlew` binary is currently committed. Generate one first if it's missing:
