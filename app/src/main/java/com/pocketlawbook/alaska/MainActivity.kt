@@ -9,7 +9,7 @@ import com.pocketlawbook.alaska.ui.theme.PocketLawbookTheme
 
 class MainActivity : ComponentActivity() {
 
-    private val container = AppContainer()
+    private val container by lazy { AppContainer(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

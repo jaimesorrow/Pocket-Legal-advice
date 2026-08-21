@@ -1,5 +1,6 @@
 package com.pocketlawbook.alaska.ui.navigation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -15,6 +16,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -30,6 +34,9 @@ import com.pocketlawbook.alaska.data.account.lockReason
 import com.pocketlawbook.alaska.data.local.entity.Jurisdiction
 import com.pocketlawbook.alaska.di.AppContainer
 import com.pocketlawbook.alaska.ui.component.DisclaimerBar
+import com.pocketlawbook.alaska.ui.screen.LegalConsentScreen
+import com.pocketlawbook.alaska.ui.screen.LegalDocumentScreen
+import com.pocketlawbook.alaska.ui.screen.LegalIndexScreen
 import com.pocketlawbook.alaska.ui.screen.AccountScreen
 import com.pocketlawbook.alaska.ui.screen.ActionStepsScreen
 import com.pocketlawbook.alaska.ui.screen.AiChatScreen
@@ -59,11 +66,30 @@ fun PocketLawbookApp(container: AppContainer) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
+    val hasAccepted by container.consentRepository.hasAcceptedCurrent.collectAsStateWithLifecycle()
+
     fun closeDrawer() = scope.launch { drawerState.close() }
 
     fun go(route: String) {
         closeDrawer()
         navController.navigate(route) { launchSingleTop = true }
+    }
+
+    // The terms gate everything. Until they are accepted for the current version
+    // there is no drawer and no other destination — continued use is not consent.
+    if (!hasAccepted) {
+        var reading by rememberSaveable { mutableStateOf<String?>(null) }
+        val currentlyReading = reading
+        if (currentlyReading == null) {
+            LegalConsentScreen(
+                onAccept = { container.consentRepository.accept() },
+                onOpenDocument = { reading = it }
+            )
+        } else {
+            BackHandler { reading = null }
+            LegalDocumentScreen(documentId = currentlyReading)
+        }
+        return
     }
 
     ModalNavigationDrawer(
@@ -232,6 +258,18 @@ private fun AppNavHost(
             )
         }
 
+        composable(Routes.LEGAL) {
+            LegalIndexScreen(
+                onOpenDocument = { id -> onNavigate(Routes.legalDocument(id)) }
+            )
+        }
+
+        composable(Routes.LEGAL_DOCUMENT) { entry ->
+            LegalDocumentScreen(
+                documentId = entry.arguments?.getString("documentId").orEmpty()
+            )
+        }
+
         composable(Routes.PAYWALL) {
             PaywallScreen(
                 state = accountState,
@@ -254,6 +292,8 @@ private fun titleForRoute(route: String?): String = when (route) {
     Routes.SIGN_UP -> "Sign up"
     Routes.ACCOUNT -> "Your account"
     Routes.PAYWALL -> "Subscription"
+    Routes.LEGAL -> "Legal & privacy"
+    Routes.LEGAL_DOCUMENT -> "Legal"
     Routes.ACTION_STEPS -> "Action steps"
     else -> "Alaska's Pocket Lawbook"
 }

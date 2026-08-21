@@ -16,9 +16,14 @@ object Routes {
     const val AI_CHAT = "aiChat"
     const val ANALYZE = "analyze"
     const val PAYWALL = "paywall"
+    const val LEGAL = "legal"
+    const val CONSENT = "consent"
 
     const val ACTION_STEPS = "steps/{violationKey}"
     fun actionSteps(violationKey: String) = "steps/$violationKey"
+
+    const val LEGAL_DOCUMENT = "legal/{documentId}"
+    fun legalDocument(documentId: String) = "legal/$documentId"
 }
 
 /**
@@ -54,6 +59,11 @@ object DrawerSections {
         DrawerEntry(Routes.ALASKA_CASE_LAW, "Alaska case law", PremiumFeature.ALASKA_CASE_LAW),
         DrawerEntry(Routes.FEDERAL_CASE_LAW, "Federal case law", PremiumFeature.FEDERAL_CASE_LAW),
         DrawerEntry(Routes.AI_CHAT, "AI chat", PremiumFeature.AI_CHAT)
+    )
+
+    /** Always reachable. Play requires the privacy policy to be available in-app. */
+    val about = listOf(
+        DrawerEntry(Routes.LEGAL, "Legal & privacy")
     )
 }
 

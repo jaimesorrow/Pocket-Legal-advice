@@ -106,6 +106,22 @@ fun AppDrawer(
                 )
             }
 
+            Spacer(Modifier.height(10.dp))
+            HorizontalDivider()
+
+            SectionLabel(
+                text = "About",
+                modifier = Modifier.padding(start = 28.dp, top = 18.dp, bottom = 6.dp)
+            )
+            DrawerSections.about.forEach { entry ->
+                DrawerRow(
+                    label = entry.label,
+                    selected = currentRoute == entry.route,
+                    locked = false,
+                    onClick = { onNavigate(entry.route) }
+                )
+            }
+
             if (!unlocked) {
                 Spacer(Modifier.height(14.dp))
                 HorizontalDivider()
