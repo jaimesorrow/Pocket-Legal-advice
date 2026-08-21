@@ -4,33 +4,45 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-Pocket Legal Advice is a native Android app (Kotlin, Jetpack Compose) with package/namespace
-`com.pocketlegal.advice`. It targets minSdk 24 / compileSdk 35 / targetSdk 35.
+Alaska's Pocket Lawbook is a native Android app (Kotlin, Jetpack Compose) with package/namespace
+`com.pocketlawbook.alaska`. It targets minSdk 24 / compileSdk 35 / targetSdk 35.
 
-**Current repository state:** this is an early-stage skeleton. There is no `app/src/main` yet —
-the only source file in the repo is a unit test
-(`app/src/test/java/com/pocketlegal/advice/viewmodel/LegalAnalysisViewModelTest.kt`) that specifies,
-via mocks and assertions, the architecture and behavior of the app's core feature before any of the
-production classes exist. Treat that test file as the executable spec for the `LegalAnalysisViewModel`
-pipeline when implementing it. There is also no `gradlew` wrapper script checked in yet (only
-`gradle/wrapper/gradle-wrapper.properties`, pinned to Gradle 8.11.1), and the test's dependencies
-(`io.mockk`, `kotlinx-coroutines-test`) are not yet declared in `gradle/libs.versions.toml` /
-`app/build.gradle.kts` — both need to be added before the test module will compile. `app/build.gradle.kts`'s
-`release` build type also references `app/proguard-rules.pro`, which does not exist yet either — add it
-(even as an empty file) before a release build will succeed.
+**Jurisdiction scope:** the app covers **Alaska state law plus federal law, and nothing else**. This
+is a product guarantee, not an incidental detail — every piece of verified content must be tagged
+with the jurisdiction it comes from (`ALASKA` or `FEDERAL`), and the UI must disclose which one an
+answer rests on. Never add content from another state's law, and never let an answer imply
+nationwide applicability when it is Alaska-specific.
+
+**No accounts:** the app has no sign-in, no user profile, and no server-side identity. It launches
+straight to the main screen. This is deliberate — users asking about arrests or evictions should not
+have that tied to an account. Do not introduce auth without an explicit decision to do so.
+
+**Current repository state:** the core pipeline described below is implemented and building. The
+whole app is one `MainActivity` with a placeholder Composable — there is no navigation graph and no
+real UI yet. `LegalAnalysisViewModelTest` (21 tests, all passing) remains the executable spec for the
+pipeline; treat it as authoritative when changing any of these classes.
+
+Known gaps: `ActionStepDao` is a plain interface with no Room annotations and no backing database;
+`LegalApiService` has no HTTP implementation; there is no dependency injection wiring the ViewModel
+to real implementations; and no screen actually exercises the pipeline.
 
 ## Build & test commands
 
-No `gradlew` binary is currently committed. Generate one first if it's missing:
-```
-gradle wrapper --gradle-version 8.11.1
-```
-Then use the wrapper for everything:
+The Gradle wrapper is committed (pinned to Gradle 8.11.1). An Android SDK with platform 35 and
+build-tools 35.0.0 is required; point the build at it via a `local.properties` containing
+`sdk.dir=/path/to/android-sdk` (this file is gitignored and must not be committed).
+
+Note on locale: Kotlin encodes backtick-quoted test names directly into `.class` filenames, so test
+names must stay ASCII-only. A non-ASCII character in a test name fails the build on systems whose
+`sun.jnu.encoding` resolves to ASCII, with a misleading "Internal compiler error". Setting
+`-Dsun.jnu.encoding=UTF-8` does not fix it — the JDK derives that from the OS locale at startup.
+
+Use the wrapper for everything:
 ```
 ./gradlew build                 # full build
 ./gradlew assembleDebug         # build debug APK
 ./gradlew test                  # run JVM unit tests (app/src/test)
-./gradlew testDebugUnitTest --tests "com.pocketlegal.advice.viewmodel.LegalAnalysisViewModelTest"
+./gradlew testDebugUnitTest --tests "com.pocketlawbook.alaska.viewmodel.LegalAnalysisViewModelTest"
 ./gradlew testDebugUnitTest --tests "*.LegalAnalysisViewModelTest.initial ui state is Idle"
 ./gradlew connectedAndroidTest  # instrumented tests (app/src/androidTest), needs a device/emulator
 ./gradlew lint                  # Android Lint

@@ -1,4 +1,4 @@
-package com.pocketlegal.advice.ui.model
+package com.pocketlawbook.alaska.ui.model
 
 /**
  * The only shape allowed to carry violation copy into Compose UI. Every

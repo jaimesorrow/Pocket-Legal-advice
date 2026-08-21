@@ -1,4 +1,4 @@
-package com.pocketlegal.advice.data.local.entity
+package com.pocketlawbook.alaska.data.local.entity
 
 /**
  * Vetted, verified content for a single violation key. This is the single

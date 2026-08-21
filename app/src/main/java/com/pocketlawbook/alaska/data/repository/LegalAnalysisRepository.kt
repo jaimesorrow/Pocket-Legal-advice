@@ -1,8 +1,8 @@
-package com.pocketlegal.advice.data.repository
+package com.pocketlawbook.alaska.data.repository
 
-import com.pocketlegal.advice.data.local.dao.ActionStepDao
-import com.pocketlegal.advice.data.remote.api.LegalApiService
-import com.pocketlegal.advice.ui.model.VerifiedActionStep
+import com.pocketlawbook.alaska.data.local.dao.ActionStepDao
+import com.pocketlawbook.alaska.data.remote.api.LegalApiService
+import com.pocketlawbook.alaska.ui.model.VerifiedActionStep
 
 /**
  * Orchestrates the zero-hallucination pipeline: calls the remote API, extracts

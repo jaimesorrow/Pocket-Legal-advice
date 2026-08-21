@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.pocketlegal.advice"
+    namespace = "com.pocketlawbook.alaska"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.pocketlegal.advice"
+        applicationId = "com.pocketlawbook.alaska"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

@@ -1,9 +1,9 @@
-package com.pocketlegal.advice.viewmodel
+package com.pocketlawbook.alaska.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pocketlegal.advice.data.repository.LegalAnalysisRepository
-import com.pocketlegal.advice.ui.model.LegalAnalysisUiState
+import com.pocketlawbook.alaska.data.repository.LegalAnalysisRepository
+import com.pocketlawbook.alaska.ui.model.LegalAnalysisUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

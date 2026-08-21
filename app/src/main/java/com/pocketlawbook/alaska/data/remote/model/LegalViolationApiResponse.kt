@@ -1,4 +1,4 @@
-package com.pocketlegal.advice.data.remote.model
+package com.pocketlawbook.alaska.data.remote.model
 
 /**
  * Raw response from the remote/LLM legal analysis API.

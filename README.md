@@ -1,13 +1,13 @@
-# Pocket Lawbook
+# Alaska's Pocket Lawbook
 
-Know your rights, with sources you can check.
+Know your Alaska and federal rights, with sources you can check.
 
-Pocket Lawbook helps people understand what legal rights may be implicated in a
+Alaska's Pocket Lawbook helps people understand what legal rights may be implicated in a
 situation they describe, and points them to vetted, cited source material.
 
-**Pocket Lawbook provides legal information, not legal advice.** It does not
+**Alaska's Pocket Lawbook covers Alaska state law and federal law only, and provides legal information, not legal advice.** It does not
 create an attorney-client relationship and is not a substitute for consulting a
-licensed attorney in your jurisdiction.
+licensed Alaska attorney about your specific situation.
 
 ## Design principle: verified text only
 

@@ -1,13 +1,13 @@
-package com.pocketlegal.advice.viewmodel
+package com.pocketlawbook.alaska.viewmodel
 
-import com.pocketlegal.advice.data.local.dao.ActionStepDao
-import com.pocketlegal.advice.data.local.entity.ActionStepEntity
-import com.pocketlegal.advice.data.remote.api.LegalApiService
-import com.pocketlegal.advice.data.remote.model.LegalViolationApiResponse
-import com.pocketlegal.advice.data.remote.model.ViolationDetail
-import com.pocketlegal.advice.data.repository.LegalAnalysisRepository
-import com.pocketlegal.advice.ui.model.LegalAnalysisUiState
-import com.pocketlegal.advice.ui.model.VerifiedActionStep
+import com.pocketlawbook.alaska.data.local.dao.ActionStepDao
+import com.pocketlawbook.alaska.data.local.entity.ActionStepEntity
+import com.pocketlawbook.alaska.data.remote.api.LegalApiService
+import com.pocketlawbook.alaska.data.remote.model.LegalViolationApiResponse
+import com.pocketlawbook.alaska.data.remote.model.ViolationDetail
+import com.pocketlawbook.alaska.data.repository.LegalAnalysisRepository
+import com.pocketlawbook.alaska.ui.model.LegalAnalysisUiState
+import com.pocketlawbook.alaska.ui.model.VerifiedActionStep
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
