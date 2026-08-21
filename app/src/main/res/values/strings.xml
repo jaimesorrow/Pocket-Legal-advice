@@ -11,9 +11,6 @@
 
     <!-- Legal-information-not-legal-advice disclaimer. Must remain visible; this
          is the line between legal information and the practice of law. -->
-    <string name="disclaimer_short">Legal information, not legal advice.</string>
-    <string name="disclaimer_full">Alaska\'s Pocket Lawbook provides general legal
-        information about Alaska and federal law. It is not legal advice, it does not
-        create an attorney-client relationship, and it is not a substitute for
-        consulting a licensed Alaska attorney about your specific situation.</string>
+    <string name="disclaimer_short">Legal information, not legal advice. Alaska and federal law only.</string>
+    <string name="disclaimer_full">Alaska\'s Pocket Lawbook gives general legal information about Alaska and federal law. It is not legal advice, it does not create an attorney-client relationship, and it is not a substitute for talking to a licensed Alaska attorney.</string>
 </resources>
