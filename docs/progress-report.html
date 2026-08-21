@@ -1,0 +1,382 @@
+<title>Lawbook Build Status</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root {
+    --ground:#EDF1F5; --surface:#FFFFFF; --surface-2:#E3EAF1;
+    --ink:#0E2233; --ink-soft:#33495B; --muted:#5B7386;
+    --rule:#C9D6E1; --rule-soft:#DDE6ED;
+    --accent:#A87209; --accent-ink:#7A5306;
+    --alaska:#1B4570; --alaska-ink:#14355A;
+    --done:#1F6B4A; --wip:#A87209; --blocked:#A3302A;
+    --done-bg:#DDEDE4; --wip-bg:#F2E6C9; --blocked-bg:#F5DEDC;
+    --shadow:0 1px 2px rgba(14,34,51,.06), 0 8px 24px rgba(14,34,51,.06);
+    --maxw:76ch;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#0A141D; --surface:#111F2B; --surface-2:#172937;
+      --ink:#E5EEF5; --ink-soft:#C0D0DD; --muted:#8CA3B4;
+      --rule:#2A3F51; --rule-soft:#1E3141;
+      --accent:#E0AE4B; --accent-ink:#F0C877;
+      --alaska:#7FB0E4; --alaska-ink:#A3C8F0;
+      --done:#6FBF95; --wip:#E0AE4B; --blocked:#E8776F;
+      --done-bg:#123024; --wip-bg:#3B2F14; --blocked-bg:#3A1B18;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.28);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0A141D; --surface:#111F2B; --surface-2:#172937;
+    --ink:#E5EEF5; --ink-soft:#C0D0DD; --muted:#8CA3B4;
+    --rule:#2A3F51; --rule-soft:#1E3141;
+    --accent:#E0AE4B; --accent-ink:#F0C877;
+    --alaska:#7FB0E4; --alaska-ink:#A3C8F0;
+    --done:#6FBF95; --wip:#E0AE4B; --blocked:#E8776F;
+    --done-bg:#123024; --wip-bg:#3B2F14; --blocked-bg:#3A1B18;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.28);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    background:var(--ground); color:var(--ink);
+    font-family:"Source Sans 3",ui-sans-serif,system-ui,sans-serif;
+    font-size:17px; line-height:1.62; margin:0; padding:0 24px 96px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:var(--maxw); margin:0 auto}
+
+  .masthead{padding:64px 0 26px; border-bottom:2px solid var(--ink); margin-bottom:34px}
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.13em;
+    text-transform:uppercase; color:var(--muted); margin:0 0 14px;
+  }
+  h1{
+    font-family:Spectral,Georgia,serif; font-weight:700;
+    font-size:clamp(2rem,5.2vw,2.9rem); line-height:1.08; letter-spacing:-.015em;
+    text-wrap:balance; margin:0 0 14px;
+  }
+  .standfirst{
+    font-family:Spectral,Georgia,serif; font-size:1.14rem; line-height:1.55;
+    color:var(--ink-soft); margin:0; max-width:60ch;
+  }
+  h2{
+    font-family:Spectral,Georgia,serif; font-weight:600; font-size:1.6rem;
+    letter-spacing:-.01em; text-wrap:balance; margin:52px 0 6px;
+    padding-top:24px; border-top:1px solid var(--rule);
+  }
+  h2:first-of-type{margin-top:36px}
+  .h2-note{
+    font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--muted); margin:0 0 20px;
+  }
+  h3{font-weight:700; font-size:1.02rem; margin:26px 0 8px}
+  p{margin:0 0 15px}
+  code{
+    font-family:"IBM Plex Mono",monospace; font-size:.875em;
+    background:var(--surface-2); padding:.1em .38em; border-radius:3px;
+  }
+  strong{font-weight:700}
+
+  /* Metrics */
+  .metrics{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(128px,1fr));
+    gap:1px; background:var(--rule); border:1px solid var(--rule);
+    border-radius:6px; overflow:hidden; margin:30px 0;
+  }
+  .metrics div{background:var(--surface); padding:16px 18px}
+  .metrics dt{
+    font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:6px;
+  }
+  .metrics dd{
+    margin:0; font-family:Spectral,Georgia,serif; font-size:1.75rem;
+    font-weight:700; line-height:1; font-variant-numeric:tabular-nums;
+  }
+  .metrics dd small{
+    display:block; font-family:"Source Sans 3",sans-serif; font-size:.76rem;
+    font-weight:400; color:var(--muted); margin-top:6px; line-height:1.4;
+  }
+
+  /* Status rows */
+  .track{display:grid; gap:9px; margin:18px 0 0}
+  .row{
+    background:var(--surface); border:1px solid var(--rule-soft);
+    border-radius:6px; padding:13px 15px; box-shadow:var(--shadow);
+    display:grid; grid-template-columns:1fr auto; gap:8px 12px; align-items:start;
+  }
+  .row-name{font-weight:700; font-size:.97rem}
+  .row-desc{
+    grid-column:1 / -1; font-size:.9rem; color:var(--ink-soft); margin:0;
+  }
+  .pill{
+    font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.07em;
+    text-transform:uppercase; padding:.25em .6em; border-radius:3px;
+    white-space:nowrap; font-weight:500;
+  }
+  .p-done{background:var(--done-bg); color:var(--done)}
+  .p-wip{background:var(--wip-bg); color:var(--wip)}
+  .p-blocked{background:var(--blocked-bg); color:var(--blocked)}
+
+  /* Callout */
+  .callout{
+    border-left:3px solid var(--blocked); background:var(--surface);
+    padding:16px 20px; margin:26px 0; border-radius:0 6px 6px 0;
+  }
+  .callout.warn{border-left-color:var(--accent)}
+  .callout p:last-child{margin-bottom:0}
+  .callout-label{
+    font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--blocked); margin:0 0 7px; font-weight:500;
+  }
+  .callout.warn .callout-label{color:var(--accent-ink)}
+
+  figure{
+    margin:28px 0; background:var(--surface); border:1px solid var(--rule-soft);
+    border-radius:8px; padding:22px 18px 14px; box-shadow:var(--shadow);
+    overflow-x:auto;
+  }
+  figure svg{display:block; max-width:100%; height:auto; margin:0 auto; color:var(--ink)}
+  figcaption{
+    font-size:.86rem; color:var(--muted); margin-top:14px; padding-top:12px;
+    border-top:1px solid var(--rule-soft); line-height:1.5;
+  }
+  .svg-node{fill:var(--surface-2); stroke:var(--rule); stroke-width:1.5}
+  .svg-node-ok{fill:var(--done-bg); stroke:var(--done); stroke-width:2}
+  .svg-node-bad{fill:var(--blocked-bg); stroke:var(--blocked); stroke-width:2}
+  .svg-label{font-family:"Source Sans 3",sans-serif; font-size:13px; font-weight:600; fill:var(--ink)}
+  .svg-sub{font-family:"IBM Plex Mono",monospace; font-size:10.5px; fill:var(--muted)}
+  .svg-edge{stroke:var(--muted); stroke-width:1.5; fill:none}
+  .svg-edge-label{font-family:"IBM Plex Mono",monospace; font-size:10.5px; fill:var(--muted)}
+
+  ul.plain{padding-left:1.15em; margin:10px 0 0}
+  ul.plain li{margin-bottom:7px}
+  ol.steps{padding-left:1.3em; margin:12px 0 0}
+  ol.steps li{margin-bottom:10px}
+
+  footer{
+    margin-top:60px; padding-top:20px; border-top:1px solid var(--rule);
+    font-size:.85rem; color:var(--muted);
+  }
+  @media (max-width:560px){
+    body{font-size:16px; padding:0 18px 64px}
+    .masthead{padding-top:44px}
+    .metrics dd{font-size:1.45rem}
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Build status · branch claude/progress-report-6yqkqc</p>
+    <h1>Alaska's Pocket Lawbook</h1>
+    <p class="standfirst">The app went from a static string to a navigable product this session.
+    Two things stand between it and the Play Store, and neither is code you can write without
+    an account you don't have yet.</p>
+  </header>
+
+  <dl class="metrics">
+    <div><dt>Kotlin files</dt><dd>30<small>3,196 lines in main</small></dd></div>
+    <div><dt>Tests</dt><dd>21<small>all passing, 705 lines</small></dd></div>
+    <div><dt>Destinations</dt><dd>14<small>wired in the nav graph</small></dd></div>
+    <div><dt>Commits</dt><dd>6<small>all pushed</small></dd></div>
+  </dl>
+
+  <p>At the start of this session the app was one Activity rendering the text
+  "Pocket Legal Advice", with no navigation library, no DI, and no implementation behind either
+  of the two interfaces its tested pipeline depended on. It now builds, runs, navigates, gates a
+  paid tier, and blocks on accepted terms.</p>
+
+  <h2>What works today</h2>
+  <p class="h2-note">Verified by build, tests, and lint — not by estimate</p>
+
+  <div class="track">
+    <div class="row">
+      <span class="row-name">Free tier, end to end</span><span class="pill p-done">working</span>
+      <p class="row-desc">Welcome → describe a situation → matched rights → verified action steps.
+      Runs entirely on-device: no network, so it works in airplane mode and where there's no
+      signal, and nothing typed about an arrest leaves the phone.</p>
+    </div>
+    <div class="row">
+      <span class="row-name">Drawer navigation</span><span class="pill p-done">working</span>
+      <p class="row-desc">Sign in · User account · Sign up · Alaska law · Federal law ·
+      Alaska case law 🔒 · Federal case law 🔒 · AI chat 🔒 · Legal &amp; privacy.</p>
+    </div>
+    <div class="row">
+      <span class="row-name">Jurisdiction tagging</span><span class="pill p-done">working</span>
+      <p class="row-desc">Enforced in the data model, not the copy. Every entry carries
+      <code>ALASKA</code> or <code>FEDERAL</code> and renders a chip, so the two are never
+      indistinguishable.</p>
+    </div>
+    <div class="row">
+      <span class="row-name">Paywall &amp; gating UI</span><span class="pill p-done">working</span>
+      <p class="row-desc">Locked features need an account <em>and</em> an active subscription.
+      Locked rows stay visible so the offer is discoverable, and the message distinguishes
+      "you need an account" from "you need to subscribe".</p>
+    </div>
+    <div class="row">
+      <span class="row-name">Legal consent gate</span><span class="pill p-done">working</span>
+      <p class="row-desc">Blocks every destination until the current terms are accepted, with an
+      explicit checkbox. Records the accepted version, so changing the terms re-prompts rather
+      than assuming agreement.</p>
+    </div>
+    <div class="row">
+      <span class="row-name">Zero-hallucination pipeline</span><span class="pill p-done">working</span>
+      <p class="row-desc">21 tests still green through every refactor, including the package
+      rename and the jurisdiction field.</p>
+    </div>
+  </div>
+
+  <h2>The two real blockers</h2>
+  <p class="h2-note">Both need accounts only you can create</p>
+
+  <div class="callout">
+    <p class="callout-label">Blocker 1 — the paywall is decoration</p>
+    <p><code>InMemoryAccountRepository</code> authenticates nobody and charges nobody, and
+    entitlement is a boolean in client memory. Anyone can patch the APK and unlock the paid tier.
+    The backend that fixes this is written (<code>functions/index.js</code>) but not deployed — it
+    needs a Firebase project and a Play Console subscription product.</p>
+  </div>
+
+  <div class="callout">
+    <p class="callout-label">Blocker 2 — no attorney has read any of it</p>
+    <p>The five content entries and all six legal documents are drafts marked
+    NOT ATTORNEY-REVIEWED. For a legal-information app charging $10/month, shipping unreviewed
+    content is the single largest liability in the project. This is a hiring decision, not an
+    engineering task.</p>
+  </div>
+
+  <h2>How payments have to work</h2>
+  <p class="h2-note">Google Play Billing is not optional here</p>
+
+  <p>Selling digital content inside a Play app means using Play Billing. Stripe and PayPal are not
+  permitted for this, and shipping an external payment link is a common way to get removed from
+  the store. Play takes <strong>15%</strong> of subscription revenue, so $10/month nets about
+  $8.50 before tax.</p>
+
+  <p>The architectural rule that matters more than any of that:</p>
+
+  <figure>
+    <svg viewBox="0 0 780 300" role="img" aria-label="Payment architecture: the app launches a Play purchase flow and receives a purchase token, which it sends to a Cloud Function; the function validates the token with the Google Play Developer API and writes an entitlement record; the app reads entitlement from the server and gated content is served from the server, never bundled in the app.">
+      <defs>
+        <marker id="pa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+
+      <rect class="svg-node-bad" x="16" y="120" width="128" height="56" rx="5"/>
+      <text class="svg-label" x="80" y="144" text-anchor="middle">The app</text>
+      <text class="svg-sub" x="80" y="160" text-anchor="middle">never trusted</text>
+
+      <rect class="svg-node" x="212" y="30" width="132" height="52" rx="5"/>
+      <text class="svg-label" x="278" y="53" text-anchor="middle">Play Billing</text>
+      <text class="svg-sub" x="278" y="69" text-anchor="middle">purchase token</text>
+
+      <rect class="svg-node-ok" x="212" y="214" width="132" height="56" rx="5"/>
+      <text class="svg-label" x="278" y="238" text-anchor="middle">Cloud Function</text>
+      <text class="svg-sub" x="278" y="254" text-anchor="middle">validates token</text>
+
+      <rect class="svg-node" x="412" y="214" width="140" height="56" rx="5"/>
+      <text class="svg-label" x="482" y="238" text-anchor="middle">Play Developer</text>
+      <text class="svg-sub" x="482" y="254" text-anchor="middle">API · the truth</text>
+
+      <rect class="svg-node-ok" x="608" y="120" width="150" height="56" rx="5"/>
+      <text class="svg-label" x="683" y="144" text-anchor="middle">Entitlement</text>
+      <text class="svg-sub" x="683" y="160" text-anchor="middle">server-side record</text>
+
+      <g class="svg-edge" marker-end="url(#pa)">
+        <path d="M 100 120 Q 100 56 206 56"/>
+        <path d="M 278 82 L 278 208"/>
+        <line x1="344" y1="242" x2="406" y2="242"/>
+        <path d="M 552 236 Q 610 236 660 182"/>
+        <path d="M 608 148 L 150 148"/>
+      </g>
+
+      <text class="svg-edge-label" x="112" y="102" text-anchor="start">buy</text>
+      <text class="svg-edge-label" x="288" y="152" text-anchor="start">token</text>
+      <text class="svg-edge-label" x="375" y="232" text-anchor="middle">verify</text>
+      <text class="svg-edge-label" x="600" y="205" text-anchor="middle">write</text>
+      <text class="svg-edge-label" x="380" y="140" text-anchor="middle">may this user read case law?</text>
+    </svg>
+    <figcaption>The app can only ever report that a purchase flow completed on this device, which
+    is trivially faked. Entitlement is decided by the server from a token validated with Google
+    directly. This is also why case law must be <em>served</em>, not bundled: content shipped in
+    the APK behind a client-side flag is already on the device, and the lock is decoration.</figcaption>
+  </figure>
+
+  <h3>What Play Console needs from you</h3>
+  <ol class="steps">
+    <li><strong>Developer account</strong> — $25 one-time. Identity verification takes days, so
+    start it before you need it.</li>
+    <li><strong>Subscription product</strong> at $10/month with a base plan. The product ID must
+    match <code>pocket_lawbook_monthly</code> in <code>BillingConstants</code>.</li>
+    <li><strong>Service account</strong> with Play Developer API access, so the Cloud Function can
+    validate tokens.</li>
+    <li><strong>Pub/Sub topic</strong> for real-time developer notifications. Without it,
+    entitlement drifts — cancellations and failed renewals wouldn't reach the app until next
+    sign-in, so people keep access they stopped paying for.</li>
+    <li><strong>Data safety form</strong>, which must match the privacy policy exactly. Mismatches
+    are a common rejection.</li>
+  </ol>
+
+  <div class="callout warn">
+    <p class="callout-label">Three Play requirements that are easy to miss</p>
+    <p><strong>Acknowledge purchases within three days</strong> or Play auto-refunds them. The
+    Cloud Function does this. <strong>Offer account deletion</strong> in-app and on the web —
+    mandatory for any app with accounts. <strong>Provide restore purchases</strong>, so someone
+    who reinstalls or switches phones isn't asked to pay twice.</p>
+  </div>
+
+  <h2>What's left</h2>
+  <p class="h2-note">Ordered by what blocks a release</p>
+
+  <div class="track">
+    <div class="row">
+      <span class="row-name">Firebase Auth + Play Billing</span><span class="pill p-blocked">needs accounts</span>
+      <p class="row-desc">Client code and Cloud Functions are written. Wiring them needs
+      <code>google-services.json</code> and a Play Console product — adding the Firebase SDK
+      without the config file breaks the build, so it's deliberately not added yet.</p>
+    </div>
+    <div class="row">
+      <span class="row-name">Attorney review</span><span class="pill p-blocked">needs counsel</span>
+      <p class="row-desc">Content entries and all six legal documents. Inline notes flag the
+      specific decisions: enforceable scope of the liability limit under Alaska law, whether to
+      include arbitration, auto-renewal disclosure.</p>
+    </div>
+    <div class="row">
+      <span class="row-name">Case law corpus</span><span class="pill p-wip">decided, not built</span>
+      <p class="row-desc">Curate ~150–300 significant Alaska and federal cases; CourtListener as
+      the expansion path once demand is proven. The binding constraint is review capacity, not
+      ingestion.</p>
+    </div>
+    <div class="row">
+      <span class="row-name">AI chat</span><span class="pill p-wip">designed, not built</span>
+      <p class="row-desc">Hybrid: the model writes one framing sentence and selects passages;
+      citations come from the corpus. Needs the corpus and retrieval layer first.</p>
+    </div>
+    <div class="row">
+      <span class="row-name">Room + persistent sign-in</span><span class="pill p-wip">seam ready</span>
+      <p class="row-desc"><code>SeededActionStepDao</code> swaps for Room behind the existing
+      interface. Sign-in currently doesn't survive a restart.</p>
+    </div>
+    <div class="row">
+      <span class="row-name">App icon</span><span class="pill p-wip">one lint warning</span>
+      <p class="row-desc">The only lint issue in the project. Play won't accept a submission
+      without one.</p>
+    </div>
+  </div>
+
+  <h2>Suggested order</h2>
+  <p>Start the <strong>Play Console identity verification</strong> today — it's the longest
+  pole and it's pure waiting. Then <strong>find the attorney</strong>, because review capacity
+  determines how big the case-law corpus can be, which determines whether the $10 price is
+  defensible. Firebase wiring is a day's work once the accounts exist, and I can do the client
+  side as soon as you drop in <code>google-services.json</code>.</p>
+
+  <footer>
+    Metrics counted from the working tree at <code>e0dad02</code>. Test, lint, and build results
+    from local runs against Android SDK 35. Nothing here is estimated.
+  </footer>
+
+</div>

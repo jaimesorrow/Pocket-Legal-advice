@@ -1,3 +1,16 @@
 <resources>
-    <string name="app_name">Pocket Legal Advice</string>
+    <string name="app_name">Alaska\'s Pocket Lawbook</string>
+
+    <!-- Shown under the app name. Discloses the scope of covered law up front so
+         users know what jurisdictions the answers apply to. -->
+    <string name="app_tagline">Including all federal laws</string>
+
+    <!-- Jurisdiction scope. Every answer is scoped to one of these. -->
+    <string name="jurisdiction_alaska">Alaska</string>
+    <string name="jurisdiction_federal">Federal</string>
+
+    <!-- Legal-information-not-legal-advice disclaimer. Must remain visible; this
+         is the line between legal information and the practice of law. -->
+    <string name="disclaimer_short">Legal information, not legal advice. Alaska and federal law only.</string>
+    <string name="disclaimer_full">Alaska\'s Pocket Lawbook gives general legal information about Alaska and federal law. It is not legal advice, it does not create an attorney-client relationship, and it is not a substitute for talking to a licensed Alaska attorney.</string>
 </resources>

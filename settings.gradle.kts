@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "PocketLegalAdvice"
+rootProject.name = "AlaskaPocketLawbook"
 include(":app")

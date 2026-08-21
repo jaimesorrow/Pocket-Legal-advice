@@ -1,0 +1,704 @@
+<title>Pocket Lawbook Blueprint</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  /* ---- Light palette: Alaska's flag — gold on deep blue ---- */
+  :root {
+    --ground:     #EDF1F5;
+    --surface:    #FFFFFF;
+    --surface-2:  #E3EAF1;
+    --ink:        #0E2233;
+    --ink-soft:   #33495B;
+    --muted:      #5B7386;
+    --rule:       #C9D6E1;
+    --rule-soft:  #DDE6ED;
+
+    --accent:     #A87209;   /* flag gold — federal law, and page emphasis */
+    --accent-ink: #7A5306;
+    --alaska:     #1B4570;   /* flag blue — Alaska state law */
+    --alaska-ink: #14355A;
+    --blocked:    #A3302A;
+
+    --chip-ak-bg:  #DCE7F3;
+    --chip-fed-bg: #F2E6C9;
+    --shadow: 0 1px 2px rgba(14,34,51,.06), 0 8px 24px rgba(14,34,51,.06);
+
+    --maxw: 74ch;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:     #0A141D;
+      --surface:    #111F2B;
+      --surface-2:  #172937;
+      --ink:        #E5EEF5;
+      --ink-soft:   #C0D0DD;
+      --muted:      #8CA3B4;
+      --rule:       #2A3F51;
+      --rule-soft:  #1E3141;
+
+      --accent:     #E0AE4B;
+      --accent-ink: #F0C877;
+      --alaska:     #7FB0E4;
+      --alaska-ink: #A3C8F0;
+      --blocked:    #E8776F;
+
+      --chip-ak-bg:  #1A3350;
+      --chip-fed-bg: #3B2F14;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.28);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:     #0A141D;
+    --surface:    #111F2B;
+    --surface-2:  #172937;
+    --ink:        #E5EEF5;
+    --ink-soft:   #C0D0DD;
+    --muted:      #8CA3B4;
+    --rule:       #2A3F51;
+    --rule-soft:  #1E3141;
+
+    --accent:     #E0AE4B;
+    --accent-ink: #F0C877;
+    --alaska:     #7FB0E4;
+    --alaska-ink: #A3C8F0;
+    --blocked:    #E8776F;
+
+    --chip-ak-bg:  #1A3350;
+    --chip-fed-bg: #3B2F14;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.28);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.62;
+    margin: 0;
+    padding: 0 24px 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; }
+
+  /* ---- Masthead ---- */
+  .masthead {
+    padding: 72px 0 28px;
+    border-bottom: 2px solid var(--ink);
+    margin-bottom: 40px;
+  }
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 14px;
+  }
+  h1 {
+    font-family: Spectral, Georgia, serif;
+    font-weight: 700;
+    font-size: clamp(2.1rem, 5.4vw, 3.1rem);
+    line-height: 1.08;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 16px;
+  }
+  .standfirst {
+    font-family: Spectral, Georgia, serif;
+    font-size: 1.16rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin: 0;
+    max-width: 62ch;
+  }
+
+  h2 {
+    font-family: Spectral, Georgia, serif;
+    font-weight: 600;
+    font-size: 1.65rem;
+    letter-spacing: -.01em;
+    text-wrap: balance;
+    margin: 56px 0 6px;
+    padding-top: 26px;
+    border-top: 1px solid var(--rule);
+  }
+  h2:first-of-type { margin-top: 40px; }
+  .h2-note {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 22px;
+  }
+  h3 {
+    font-family: "Source Sans 3", sans-serif;
+    font-weight: 700;
+    font-size: 1.02rem;
+    letter-spacing: .005em;
+    margin: 30px 0 8px;
+  }
+  p { margin: 0 0 16px; }
+  a { color: var(--accent-ink); }
+  strong { font-weight: 700; }
+  code {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .875em;
+    background: var(--surface-2);
+    padding: .1em .38em;
+    border-radius: 3px;
+  }
+
+  /* ---- Verdict strip: the direct answer ---- */
+  .verdict {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 32px 0 8px;
+  }
+  .verdict div { background: var(--surface); padding: 18px 20px; }
+  .verdict dt {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 7px;
+  }
+  .verdict dd {
+    margin: 0;
+    font-family: Spectral, Georgia, serif;
+    font-size: 1.85rem;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .verdict dd small {
+    display: block;
+    font-family: "Source Sans 3", sans-serif;
+    font-size: .78rem;
+    font-weight: 400;
+    color: var(--muted);
+    margin-top: 7px;
+    line-height: 1.4;
+  }
+
+  /* ---- Screen inventory ---- */
+  .tier { margin: 26px 0 0; }
+  .tier-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  .tier-head h3 { margin: 0; }
+  .tier-count {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .tier-why { color: var(--muted); font-size: .92rem; margin: 0 0 14px; }
+
+  ol.screens { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  ol.screens li {
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: 6px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+  }
+  .screen-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 10px;
+    margin-bottom: 3px;
+  }
+  .screen-name { font-weight: 700; }
+  .route {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .screen-desc { font-size: .93rem; color: var(--ink-soft); margin: 0; }
+
+  .chip {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    padding: .2em .55em;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .chip-ak  { background: var(--chip-ak-bg);  color: var(--alaska-ink); }
+  .chip-fed { background: var(--chip-fed-bg); color: var(--accent-ink); }
+  .chip-off {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--rule);
+  }
+
+  /* ---- Figures ---- */
+  figure {
+    margin: 30px 0;
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: 8px;
+    padding: 24px 20px 16px;
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+  }
+  figure svg { display: block; max-width: 100%; height: auto; margin: 0 auto; color: var(--ink); }
+  figcaption {
+    font-size: .87rem;
+    color: var(--muted);
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule-soft);
+    line-height: 1.5;
+  }
+  .svg-node { fill: var(--surface-2); stroke: var(--rule); stroke-width: 1.5; }
+  .svg-node-key { fill: var(--chip-ak-bg); stroke: var(--alaska); stroke-width: 2; }
+  .svg-label { font-family: "Source Sans 3", sans-serif; font-size: 13px; font-weight: 600; fill: var(--ink); }
+  .svg-sub { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; fill: var(--muted); }
+  .svg-edge { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+  .svg-edge-label { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; fill: var(--muted); }
+  .svg-blocked { stroke: var(--blocked); stroke-width: 2; fill: none; stroke-dasharray: 6 4; }
+  .svg-blocked-label { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; fill: var(--blocked); font-weight: 500; }
+
+  /* ---- Callout ---- */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--surface);
+    padding: 16px 20px;
+    margin: 26px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout-label {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    margin: 0 0 7px;
+  }
+
+  /* ---- Roadmap ---- */
+  .rec { border-top: 1px solid var(--rule-soft); padding: 18px 0 4px; }
+  .rec:first-of-type { border-top: none; }
+  .rec-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin-bottom: 5px; }
+  .rec-head h3 { margin: 0; }
+  .rec p { font-size: .95rem; color: var(--ink-soft); margin: 0; }
+  .pri {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: .15em .5em;
+  }
+  .pri-now { color: var(--blocked); border-color: var(--blocked); }
+
+  ul.plain { padding-left: 1.15em; margin: 12px 0 0; }
+  ul.plain li { margin-bottom: 7px; }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    font-size: .86rem;
+    color: var(--muted);
+  }
+
+  @media (max-width: 560px) {
+    body { font-size: 16px; padding: 0 18px 64px; }
+    .masthead { padding-top: 48px; }
+    .verdict dd { font-size: 1.5rem; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Product blueprint · <span style="color:var(--alaska-ink)">Alaska</span> + <span style="color:var(--accent-ink)">Federal</span></p>
+    <h1>Alaska's Pocket Lawbook</h1>
+    <p class="standfirst">Twelve screens, no account, one gate before the main screen — and a chat that
+    can quote the law but can never write it.</p>
+  </header>
+
+  <h2>Where you actually are</h2>
+  <p class="h2-note">Measured from the repository, not estimated</p>
+
+  <dl class="verdict">
+    <div>
+      <dt>Screens today</dt>
+      <dd>0<small>One Activity rendering a static string. No navigation library is even declared.</small></dd>
+    </div>
+    <div>
+      <dt>Screens proposed</dt>
+      <dd>12<small>Of which 5 are the shippable core.</small></dd>
+    </div>
+    <div>
+      <dt>Account steps</dt>
+      <dd>0<small>No auth exists in the codebase. Nothing to remove.</small></dd>
+    </div>
+  </dl>
+
+  <p>The pipeline behind the app is real and tested — 21 passing tests covering the
+  repository, view model, and state machine. What is missing is everything the user
+  would touch. There is no <code>navigation-compose</code>, no Room, no HTTP client, and no DI.
+  So the navigation flow below is a greenfield decision, not a refactor.</p>
+
+  <div class="callout">
+    <p class="callout-label">On not having accounts</p>
+    <p>Keep it that way deliberately. No account means no server-side record of who asked
+    what about their arrest, their eviction, or their custody case. In this category that is
+    a genuine safety property, not just a shorter funnel — and it is much harder to add
+    privacy back later than to keep it now.</p>
+  </div>
+
+  <h2>The twelve screens</h2>
+  <p class="h2-note">Grouped by build order, because that is the decision the grouping encodes</p>
+
+  <div class="tier">
+    <div class="tier-head"><h3>Core</h3><span class="tier-count">5 screens · ship this first</span></div>
+    <p class="tier-why">Everything here earns its place by answering a question a scared person
+    has right now. If a screen is not on this list, it can wait.</p>
+    <ol class="screens">
+      <li>
+        <div class="screen-top"><span class="screen-name">Home</span><span class="route">route: home</span><span class="chip chip-off">start destination</span></div>
+        <p class="screen-desc">Cold launch lands here. Two entry points, not one: <em>Ask a question</em> opens
+        the chat, <em>Describe what happened</em> opens the analysis pipeline you already built. Plus a
+        persistent Emergency button.</p>
+      </li>
+      <li>
+        <div class="screen-top"><span class="screen-name">Answer</span><span class="route">route: answer/{threadId}</span><span class="chip chip-ak">Alaska</span><span class="chip chip-fed">Federal</span></div>
+        <p class="screen-desc">The chat thread. Every answer carries a jurisdiction chip so the reader
+        always knows whether they are reading Alaska law or federal law. Architecture is below.</p>
+      </li>
+      <li>
+        <div class="screen-top"><span class="screen-name">Source</span><span class="route">route: source/{citation}</span><span class="chip chip-off">offline</span></div>
+        <p class="screen-desc">The payoff for "credited sources": full verbatim statute text, its
+        citation, and its effective date. Every citation anywhere in the app deep-links here.</p>
+      </li>
+      <li>
+        <div class="screen-top"><span class="screen-name">Situation analysis</span><span class="route">route: analyze</span></div>
+        <p class="screen-desc">Your existing pipeline, given a face at last. Describe a situation,
+        get back verified violations. Already fully specified by the test suite.</p>
+      </li>
+      <li>
+        <div class="screen-top"><span class="screen-name">Action steps</span><span class="route">route: steps/{violationKey}</span><span class="chip chip-off">offline</span></div>
+        <p class="screen-desc">One <code>VerifiedActionStep</code>, rendered. Strings pass through byte-for-byte
+        from the database, exactly as the tests demand.</p>
+      </li>
+    </ol>
+  </div>
+
+  <div class="tier">
+    <div class="tier-head"><h3>Supporting</h3><span class="tier-count">4 screens · second release</span></div>
+    <p class="tier-why">These make the app worth keeping installed between emergencies.</p>
+    <ol class="screens">
+      <li>
+        <div class="screen-top"><span class="screen-name">Browse</span><span class="route">route: browse</span></div>
+        <p class="screen-desc">Topic library for people who do not know the words to search for. Alaska
+        needs its own topics, not a generic set: subsistence hunting and fishing, ANCSA and Alaska
+        Native rights, VPSO encounters in villages, cold-weather habitability and heat obligations,
+        commercial fishing and maritime work.</p>
+      </li>
+      <li>
+        <div class="screen-top"><span class="screen-name">Saved</span><span class="route">route: saved</span><span class="chip chip-off">offline</span></div>
+        <p class="screen-desc">Local bookmarks. On-device only — no sync, because sync implies an account.</p>
+      </li>
+      <li>
+        <div class="screen-top"><span class="screen-name">Emergency card</span><span class="route">route: emergency</span><span class="chip chip-off">offline</span></div>
+        <p class="screen-desc">One tap from Home. A read-aloud script for a stop or arrest, sized for a
+        locked screen at arm's length. Must work at airplane mode with a dead network.</p>
+      </li>
+      <li>
+        <div class="screen-top"><span class="screen-name">Find help</span><span class="route">route: help</span></div>
+        <p class="screen-desc">The exit ramp to a human: Alaska Legal Services Corporation, the Alaska
+        Bar Association referral line, the public defender agency. This screen is what makes
+        "not legal advice" honest rather than a disclaimer.</p>
+      </li>
+    </ol>
+  </div>
+
+  <div class="tier">
+    <div class="tier-head"><h3>System</h3><span class="tier-count">3 screens · required, not optional</span></div>
+    <p class="tier-why">Two of these are compliance surface. Build them early even though nobody demos them.</p>
+    <ol class="screens">
+      <li>
+        <div class="screen-top"><span class="screen-name">First-run disclaimer</span><span class="route">route: welcome</span><span class="chip chip-off">once</span></div>
+        <p class="screen-desc">The only thing between launch and Home, shown exactly once. One
+        acknowledgment that this is legal information covering Alaska and federal law, not legal advice.
+        This is not a signup — no field to fill in, no identity captured.</p>
+      </li>
+      <li>
+        <div class="screen-top"><span class="screen-name">Settings</span><span class="route">route: settings</span></div>
+        <p class="screen-desc">Text size, language, clear local history.</p>
+      </li>
+      <li>
+        <div class="screen-top"><span class="screen-name">About &amp; sources</span><span class="route">route: about</span></div>
+        <p class="screen-desc">Content provenance, who reviewed it, when each source was last verified,
+        and licensing. In a legal app this page is the credibility argument.</p>
+      </li>
+    </ol>
+  </div>
+
+  <h2>How navigation flows</h2>
+  <p class="h2-note">One Activity, one nav graph, three tabs</p>
+
+  <figure>
+    <svg viewBox="0 0 800 470" role="img" aria-label="Navigation flow: launch goes through a one-time disclaimer to Home, which is the start destination; Home branches to Answer, Situation analysis, Browse, Saved and Emergency; Answer and Action steps both lead to the Source viewer.">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+
+      <!-- Launch -->
+      <rect class="svg-node" x="14" y="206" width="104" height="46" rx="5"/>
+      <text class="svg-label" x="66" y="228" text-anchor="middle">Cold launch</text>
+      <text class="svg-sub" x="66" y="243" text-anchor="middle">no account</text>
+
+      <!-- Disclaimer -->
+      <rect class="svg-node" x="164" y="206" width="118" height="46" rx="5"/>
+      <text class="svg-label" x="223" y="228" text-anchor="middle">Disclaimer</text>
+      <text class="svg-sub" x="223" y="243" text-anchor="middle">first run only</text>
+
+      <!-- Home (emphasised) -->
+      <rect class="svg-node-key" x="330" y="198" width="118" height="62" rx="5"/>
+      <text class="svg-label" x="389" y="224" text-anchor="middle">Home</text>
+      <text class="svg-sub" x="389" y="240" text-anchor="middle">start dest.</text>
+
+      <!-- Right column -->
+      <rect class="svg-node" x="504" y="36"  width="124" height="44" rx="5"/>
+      <text class="svg-label" x="566" y="63" text-anchor="middle">Answer</text>
+
+      <rect class="svg-node" x="504" y="118" width="124" height="44" rx="5"/>
+      <text class="svg-label" x="566" y="145" text-anchor="middle">Analysis</text>
+
+      <rect class="svg-node" x="504" y="216" width="124" height="44" rx="5"/>
+      <text class="svg-label" x="566" y="243" text-anchor="middle">Browse</text>
+
+      <rect class="svg-node" x="504" y="288" width="124" height="44" rx="5"/>
+      <text class="svg-label" x="566" y="315" text-anchor="middle">Saved</text>
+
+      <rect class="svg-node" x="504" y="376" width="124" height="44" rx="5"/>
+      <text class="svg-label" x="566" y="403" text-anchor="middle">Emergency</text>
+
+      <!-- Far right -->
+      <rect class="svg-node" x="668" y="118" width="118" height="44" rx="5"/>
+      <text class="svg-label" x="727" y="140" text-anchor="middle">Action steps</text>
+      <text class="svg-sub" x="727" y="154" text-anchor="middle">verified</text>
+
+      <rect class="svg-node-key" x="668" y="36" width="118" height="44" rx="5"/>
+      <text class="svg-label" x="727" y="58" text-anchor="middle">Source</text>
+      <text class="svg-sub" x="727" y="72" text-anchor="middle">verbatim</text>
+
+      <!-- Edges -->
+      <g class="svg-edge" marker-end="url(#ar)">
+        <line x1="118" y1="229" x2="158" y2="229"/>
+        <line x1="282" y1="229" x2="324" y2="229"/>
+        <path d="M 66 252 L 66 300 Q 66 312 78 312 L 377 312 Q 389 312 389 300 L 389 266"/>
+        <path d="M 448 214 Q 476 214 476 122 Q 476 58 498 58"/>
+        <path d="M 448 222 Q 480 222 480 140 L 498 140"/>
+        <path d="M 448 238 Q 480 238 480 238 L 498 238"/>
+        <path d="M 448 246 Q 484 246 484 310 L 498 310"/>
+        <path d="M 448 254 Q 488 254 488 398 L 498 398"/>
+        <line x1="628" y1="58" x2="662" y2="58"/>
+        <line x1="628" y1="140" x2="662" y2="140"/>
+        <path d="M 727 118 L 727 86"/>
+      </g>
+
+      <text class="svg-edge-label" x="223" y="326" text-anchor="middle">every launch after the first</text>
+      <text class="svg-edge-label" x="492" y="96"  text-anchor="start">ask</text>
+      <text class="svg-edge-label" x="492" y="176" text-anchor="start">describe</text>
+      <text class="svg-edge-label" x="645" y="50"  text-anchor="middle">cite</text>
+      <text class="svg-edge-label" x="645" y="132" text-anchor="middle">key</text>
+      <text class="svg-edge-label" x="737" y="104" text-anchor="start">cite</text>
+      <text class="svg-sub" x="566" y="352" text-anchor="middle">— bottom nav tabs —</text>
+    </svg>
+    <figcaption>Launch reaches Home in one acknowledgment on first run and zero taps thereafter.
+    Browse, Saved and Home are peer tabs; Answer, Analysis, Action steps and Source push onto a
+    stack. Every citation in the app converges on one Source screen — build it once.</figcaption>
+  </figure>
+
+  <h2>The chat, without breaking your guarantee</h2>
+  <p class="h2-note">Hybrid: the model may frame, it may never claim</p>
+
+  <p>Your test suite asserts that no raw API text ever reaches the UI — including that answer
+  strings are not even a <em>substring</em> of any model-authored field. A chat feature collides
+  with that head-on. The hybrid design resolves it by splitting the model's job in two: it may
+  write exactly one plain-language framing sentence, and it may <em>select</em> which vetted
+  passages answer the question. It never writes a legal claim, and it never writes a citation.</p>
+
+  <figure>
+    <svg viewBox="0 0 800 372" role="img" aria-label="Chat architecture: the question goes to a retriever over a vetted Alaska and federal corpus; the model receives candidate passages and returns only a framing sentence and a selection of passage IDs; verbatim passages and citations reach the answer screen directly from the corpus, while any citation the model writes is blocked.">
+      <defs>
+        <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+        </marker>
+        <marker id="arx" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--blocked)"/>
+        </marker>
+      </defs>
+
+      <rect class="svg-node" x="14" y="160" width="112" height="46" rx="5"/>
+      <text class="svg-label" x="70" y="182" text-anchor="middle">Question</text>
+      <text class="svg-sub" x="70" y="197" text-anchor="middle">free text</text>
+
+      <rect class="svg-node" x="174" y="160" width="118" height="46" rx="5"/>
+      <text class="svg-label" x="233" y="182" text-anchor="middle">Retriever</text>
+      <text class="svg-sub" x="233" y="197" text-anchor="middle">on-device</text>
+
+      <rect class="svg-node-key" x="164" y="274" width="138" height="52" rx="5"/>
+      <text class="svg-label" x="233" y="297" text-anchor="middle">Vetted corpus</text>
+      <text class="svg-sub" x="233" y="313" text-anchor="middle">AK + federal, offline</text>
+
+      <rect class="svg-node" x="360" y="44" width="130" height="52" rx="5"/>
+      <text class="svg-label" x="425" y="66" text-anchor="middle">Language model</text>
+      <text class="svg-sub" x="425" y="82" text-anchor="middle">network, optional</text>
+
+      <!-- Answer screen composite -->
+      <rect class="svg-node" x="580" y="128" width="200" height="116" rx="5"/>
+      <line x1="580" y1="176" x2="780" y2="176" stroke="var(--rule)" stroke-width="1.5"/>
+      <text class="svg-label" x="680" y="150" text-anchor="middle">AI framing</text>
+      <text class="svg-sub" x="680" y="165" text-anchor="middle">labelled, no claims</text>
+      <text class="svg-label" x="680" y="200" text-anchor="middle">Verbatim passage</text>
+      <text class="svg-sub" x="680" y="215" text-anchor="middle">+ citation + date</text>
+      <text class="svg-sub" x="680" y="232" text-anchor="middle">Answer screen</text>
+
+      <g class="svg-edge" marker-end="url(#ar2)">
+        <line x1="126" y1="183" x2="168" y2="183"/>
+        <path d="M 233 274 L 233 212"/>
+        <path d="M 292 172 Q 340 172 340 70 L 354 70"/>
+        <path d="M 490 70 Q 540 70 540 148 L 574 148"/>
+        <path d="M 292 194 Q 470 194 470 206 L 574 206"/>
+      </g>
+
+      <g class="svg-blocked" marker-end="url(#arx)">
+        <path d="M 490 88 Q 528 88 528 196 L 574 196"/>
+      </g>
+      <g stroke="var(--blocked)" stroke-width="2.5">
+        <line x1="521" y1="133" x2="535" y2="147"/>
+        <line x1="535" y1="133" x2="521" y2="147"/>
+      </g>
+
+      <text class="svg-edge-label" x="243" y="248" text-anchor="middle">passages</text>
+      <text class="svg-edge-label" x="330" y="112" text-anchor="middle">candidates</text>
+      <text class="svg-edge-label" x="548" y="112" text-anchor="middle">1 sentence</text>
+      <text class="svg-edge-label" x="430" y="188" text-anchor="middle">selected IDs → verbatim text</text>
+      <text class="svg-blocked-label" x="545" y="168" text-anchor="start">citations</text>
+    </svg>
+    <figcaption>The citation and the legal text reach the screen from the corpus, never from the
+    model — so a fabricated citation is structurally impossible rather than merely unlikely. The
+    model's only writing privilege is one framing sentence that is forbidden from containing a
+    claim or a cite, and which is visibly labelled as machine-written.</figcaption>
+  </figure>
+
+  <p>Two consequences worth accepting up front. The corpus becomes the product — the app can only
+  answer what you have vetted, so coverage is a content problem, not an engineering one. And
+  because retrieval and rendering are on-device, <strong>the app still answers with the network
+  off</strong>; only the framing sentence disappears. That is the right failure mode for a rights app.</p>
+
+  <div class="callout">
+    <p class="callout-label">Test to add before the chat ships</p>
+    <p>Extend the existing zero-hallucination suite: assert that a rendered answer's citation
+    string always matches a record in the corpus, and that the framing sentence is rejected if it
+    contains a digit-and-section pattern. That turns your architectural rule into something CI
+    enforces, the same way the current 21 tests do.</p>
+  </div>
+
+  <h2>What else belongs in an app like this</h2>
+  <p class="h2-note">Ordered by what will hurt most if it is missing</p>
+
+  <div class="rec">
+    <div class="rec-head"><h3>Offline everything</h3><span class="pri pri-now">before launch</span></div>
+    <p>The moment this app matters most — roadside, detained, a phone about to be taken, a village
+    with no bars — is the moment the network is gone. Ship the corpus in the APK and treat any
+    network dependency as an enhancement that degrades silently.</p>
+  </div>
+
+  <div class="rec">
+    <div class="rec-head"><h3>Last-verified dates and a review workflow</h3><span class="pri pri-now">before launch</span></div>
+    <p>Statutes change. Every entry needs an effective date, a last-reviewed date, and the initials
+    of the licensed Alaska attorney who reviewed it. Content review is the recurring operational
+    cost of this product; design the pipeline for it now rather than discovering it later.</p>
+  </div>
+
+  <div class="rec">
+    <div class="rec-head"><h3>Jurisdiction on every surface</h3><span class="pri pri-now">before launch</span></div>
+    <p>Tag every record <code>ALASKA</code> or <code>FEDERAL</code> at the schema level, not in the copy, and
+    render the chip everywhere an answer appears. "Including all federal laws" under the app name
+    sets the expectation; the chips are what keep it honest answer by answer.</p>
+  </div>
+
+  <div class="rec">
+    <div class="rec-head"><h3>Plain language, seriously measured</h3><span class="pri">high</span></div>
+    <p>Statutory language is unreadable under stress. Target roughly a 6th-grade reading level for
+    the vetted summaries and measure it in the content pipeline. This does more for real-world
+    usefulness than any feature on this page.</p>
+  </div>
+
+  <div class="rec">
+    <div class="rec-head"><h3>Languages Alaska actually speaks</h3><span class="pri">high</span></div>
+    <p>Spanish and Tagalog have substantial speaker populations in Anchorage, and Iñupiaq, Yup'ik
+    and Gwich'in matter in communities where the nearest attorney is a flight away. Localization
+    here is a reach decision, not a polish decision.</p>
+  </div>
+
+  <div class="rec">
+    <div class="rec-head"><h3>Recording rights, handled carefully</h3><span class="pri">high</span></div>
+    <p>Alaska is a one-party-consent state, which makes an in-app recorder genuinely useful during
+    an encounter. It also makes getting the details wrong genuinely harmful. If you build it, have
+    it reviewed as legal content, not as a feature.</p>
+  </div>
+
+  <div class="rec">
+    <div class="rec-head"><h3>Privacy posture, stated plainly</h3><span class="pri">high</span></div>
+    <p>No account is the foundation. Finish it: keep query history on-device, keep analytics to
+    screen-level counters with no query text, and say so in the app rather than only in a policy.</p>
+  </div>
+
+  <div class="rec">
+    <div class="rec-head"><h3>Accessibility</h3><span class="pri">medium</span></div>
+    <p>Large text, high contrast, full TalkBack labelling, and a one-handed reachable Emergency
+    button. Assume a cracked screen, gloves, and cold hands — this is Alaska.</p>
+  </div>
+
+  <div class="rec">
+    <div class="rec-head"><h3>An honest "we can't answer that"</h3><span class="pri">medium</span></div>
+    <p>Your <code>NoVerifiedData</code> state already anticipates this. Give it a real screen that routes
+    to Find help rather than a dead end. Knowing when to send someone to a human is the feature that
+    keeps the app on the right side of the advice line.</p>
+  </div>
+
+  <h2>Suggested next step</h2>
+  <p>Add <code>navigation-compose</code> and Room, then build the vertical slice that already has a
+  passing spec: <strong>Home → Situation analysis → Action steps</strong>. It exercises the whole
+  pipeline your 21 tests cover, needs no model and no network, and gets a real screen in front of
+  the code you have already proven. The chat can land on top of a working corpus afterwards.</p>
+
+  <footer>
+    Blueprint for Alaska's Pocket Lawbook · package <code>com.pocketlawbook.alaska</code> ·
+    Screen counts and dependency findings taken from the repository at branch
+    <code>claude/progress-report-6yqkqc</code>.
+  </footer>
+
+</div>

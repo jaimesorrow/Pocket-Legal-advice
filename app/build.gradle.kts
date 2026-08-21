@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.pocketlegal.advice"
+    namespace = "com.pocketlawbook.alaska"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.pocketlegal.advice"
+        applicationId = "com.pocketlawbook.alaska"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.navigation.compose)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

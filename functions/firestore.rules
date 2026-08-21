@@ -1,0 +1,45 @@
+rules_version = '2';
+
+// Firestore security rules for Alaska's Pocket Lawbook.
+//
+// The important property: entitlement documents are READ-ONLY to the client and
+// writable only by the backend (Cloud Functions run with admin privileges and
+// bypass these rules). A client that could write its own entitlement could
+// simply grant itself the paid tier, which would make the whole server-side
+// validation pointless.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // A user may read their own entitlement, and may never write it.
+    match /entitlements/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Gated content. Served only to a signed-in user whose entitlement record
+    // says the subscription is active and unexpired.
+    //
+    // This is why case law must NOT be bundled in the APK: shipping it locally
+    // behind a client-side boolean means the data is already on the device and
+    // the lock is decoration.
+    match /caseLaw/{document=**} {
+      allow read: if request.auth != null
+                  && exists(/databases/$(database)/documents/entitlements/$(request.auth.uid))
+                  && get(/databases/$(database)/documents/entitlements/$(request.auth.uid)).data.caseLaw == true
+                  && get(/databases/$(database)/documents/entitlements/$(request.auth.uid)).data.expiresAt > request.time;
+      allow write: if false;
+    }
+
+    // Free-tier statute content is readable by anyone, including signed-out
+    // users. Knowing your rights is not the part that is being sold.
+    match /statutes/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Deny anything not explicitly matched above.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
