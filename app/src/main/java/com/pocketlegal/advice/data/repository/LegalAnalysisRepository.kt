@@ -1,6 +1,7 @@
 package com.pocketlegal.advice.data.repository
 
 import com.pocketlegal.advice.data.local.dao.ActionStepDao
+import com.pocketlegal.advice.data.remote.api.AnalysisRequest
 import com.pocketlegal.advice.data.remote.api.LegalApiService
 import com.pocketlegal.advice.ui.model.VerifiedActionStep
 
@@ -14,7 +15,7 @@ class LegalAnalysisRepository(
     private val actionStepDao: ActionStepDao
 ) {
     suspend fun analyzeSituation(query: String): List<VerifiedActionStep> {
-        val response = apiService.analyzeLegalSituation(query)
+        val response = apiService.analyzeLegalSituation(AnalysisRequest(query))
         return response.violations.mapNotNull { violation ->
             actionStepDao.getActionStepsByKey(violation.key)?.let { entity ->
                 VerifiedActionStep(

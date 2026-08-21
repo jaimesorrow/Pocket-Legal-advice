@@ -1,7 +1,14 @@
 package com.pocketlegal.advice.data.remote.api
 
 import com.pocketlegal.advice.data.remote.model.LegalViolationApiResponse
+import retrofit2.http.Body
+import retrofit2.http.POST
 
 interface LegalApiService {
-    suspend fun analyzeLegalSituation(query: String): LegalViolationApiResponse
+    @POST("analyze")
+    suspend fun analyzeLegalSituation(@Body request: AnalysisRequest): LegalViolationApiResponse
 }
+
+data class AnalysisRequest(
+    val query: String
+)

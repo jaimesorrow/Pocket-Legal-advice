@@ -2,6 +2,7 @@ package com.pocketlegal.advice.viewmodel
 
 import com.pocketlegal.advice.data.local.dao.ActionStepDao
 import com.pocketlegal.advice.data.local.entity.ActionStepEntity
+import com.pocketlegal.advice.data.remote.api.AnalysisRequest
 import com.pocketlegal.advice.data.remote.api.LegalApiService
 import com.pocketlegal.advice.data.remote.model.LegalViolationApiResponse
 import com.pocketlegal.advice.data.remote.model.ViolationDetail
@@ -191,7 +192,7 @@ class LegalAnalysisViewModelTest {
     @Test
     fun `success state action steps are sourced exclusively from local database entity`() =
         runTest {
-            coEvery { mockApiService.analyzeLegalSituation(any()) } returns knownApiResponse
+            coEvery { mockApiService.analyzeLegalSituation(any<AnalysisRequest>()) } returns knownApiResponse
             coEvery { mockActionStepDao.getActionStepsByKey(VIOLATION_KEY) } returns
                 verifiedEntity48Hour
 
@@ -227,7 +228,7 @@ class LegalAnalysisViewModelTest {
 
     @Test
     fun `success state must NOT surface any raw text from the API response`() = runTest {
-        coEvery { mockApiService.analyzeLegalSituation(any()) } returns knownApiResponse
+        coEvery { mockApiService.analyzeLegalSituation(any<AnalysisRequest>()) } returns knownApiResponse
         coEvery { mockActionStepDao.getActionStepsByKey(VIOLATION_KEY) } returns
             verifiedEntity48Hour
 
@@ -256,7 +257,7 @@ class LegalAnalysisViewModelTest {
 
     @Test
     fun `success state strings are not a substring match of any raw API field`() = runTest {
-        coEvery { mockApiService.analyzeLegalSituation(any()) } returns knownApiResponse
+        coEvery { mockApiService.analyzeLegalSituation(any<AnalysisRequest>()) } returns knownApiResponse
         coEvery { mockActionStepDao.getActionStepsByKey(VIOLATION_KEY) } returns
             verifiedEntity48Hour
 
@@ -292,7 +293,7 @@ class LegalAnalysisViewModelTest {
 
     @Test
     fun `dao is queried with the violation key extracted from the api response`() = runTest {
-        coEvery { mockApiService.analyzeLegalSituation(any()) } returns knownApiResponse
+        coEvery { mockApiService.analyzeLegalSituation(any<AnalysisRequest>()) } returns knownApiResponse
         coEvery { mockActionStepDao.getActionStepsByKey(VIOLATION_KEY) } returns
             verifiedEntity48Hour
 
@@ -305,7 +306,7 @@ class LegalAnalysisViewModelTest {
     @Test
     fun `dao is NOT queried with any raw text from api response – only with violation keys`() =
         runTest {
-            coEvery { mockApiService.analyzeLegalSituation(any()) } returns knownApiResponse
+            coEvery { mockApiService.analyzeLegalSituation(any<AnalysisRequest>()) } returns knownApiResponse
             coEvery { mockActionStepDao.getActionStepsByKey(VIOLATION_KEY) } returns
                 verifiedEntity48Hour
 
@@ -327,7 +328,7 @@ class LegalAnalysisViewModelTest {
     @Test
     fun `success state step count matches the number of action steps in the db entity`() =
         runTest {
-            coEvery { mockApiService.analyzeLegalSituation(any()) } returns knownApiResponse
+            coEvery { mockApiService.analyzeLegalSituation(any<AnalysisRequest>()) } returns knownApiResponse
             coEvery { mockActionStepDao.getActionStepsByKey(VIOLATION_KEY) } returns
                 verifiedEntity48Hour
 
@@ -478,7 +479,7 @@ class LegalAnalysisViewModelTest {
 
     @Test
     fun `ui state never emits raw api text when db returns null for a key`() = runTest {
-        coEvery { mockApiService.analyzeLegalSituation(any()) } returns knownApiResponse
+        coEvery { mockApiService.analyzeLegalSituation(any<AnalysisRequest>()) } returns knownApiResponse
         coEvery { mockActionStepDao.getActionStepsByKey(VIOLATION_KEY) } returns null
 
         viewModel.analyzeSituation("I was held for more than 48 hours before arraignment.")
@@ -563,7 +564,7 @@ class LegalAnalysisViewModelTest {
     fun `second analyze call replaces the previous success state entirely`() = runTest {
         // First call returns the 48-hour violation
         coEvery {
-            mockApiService.analyzeLegalSituation("first query")
+            mockApiService.analyzeLegalSituation(AnalysisRequest("first query"))
         } returns knownApiResponse
         coEvery { mockActionStepDao.getActionStepsByKey(VIOLATION_KEY) } returns
             verifiedEntity48Hour
@@ -587,7 +588,7 @@ class LegalAnalysisViewModelTest {
             )
         )
         coEvery {
-            mockApiService.analyzeLegalSituation("second query")
+            mockApiService.analyzeLegalSituation(AnalysisRequest("second query"))
         } returns mirandaOnlyResponse
         coEvery { mockActionStepDao.getActionStepsByKey(VIOLATION_KEY_2) } returns
             verifiedEntityMiranda
@@ -652,7 +653,7 @@ class LegalAnalysisViewModelTest {
             description = "  $DB_DESCRIPTION  "
         )
 
-        coEvery { mockApiService.analyzeLegalSituation(any()) } returns knownApiResponse
+        coEvery { mockApiService.analyzeLegalSituation(any<AnalysisRequest>()) } returns knownApiResponse
         coEvery { mockActionStepDao.getActionStepsByKey(VIOLATION_KEY) } returns
             entityWithWhitespace
 
@@ -674,7 +675,7 @@ class LegalAnalysisViewModelTest {
 
     @Test
     fun `verified action step exposes violation key exactly as returned by api`() = runTest {
-        coEvery { mockApiService.analyzeLegalSituation(any()) } returns knownApiResponse
+        coEvery { mockApiService.analyzeLegalSituation(any<AnalysisRequest>()) } returns knownApiResponse
         coEvery { mockActionStepDao.getActionStepsByKey(VIOLATION_KEY) } returns
             verifiedEntity48Hour
 
