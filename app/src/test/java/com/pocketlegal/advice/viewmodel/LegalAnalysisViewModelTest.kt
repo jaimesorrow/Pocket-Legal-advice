@@ -303,7 +303,7 @@ class LegalAnalysisViewModelTest {
     }
 
     @Test
-    fun `dao is NOT queried with any raw text from api response – only with violation keys`() =
+    fun `dao is NOT queried with any raw text from api response - only with violation keys`() =
         runTest {
             coEvery { mockApiService.analyzeLegalSituation(any()) } returns knownApiResponse
             coEvery { mockActionStepDao.getActionStepsByKey(VIOLATION_KEY) } returns
