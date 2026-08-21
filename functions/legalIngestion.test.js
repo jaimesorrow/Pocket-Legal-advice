@@ -14,6 +14,6 @@ test("authoritative source registry is restricted to Alaska and federal jurisdic
 test("content hashes are deterministic SHA-256 values", () => {
   assert.equal(
     sha256("Pocket Legal Advice"),
-    "b6fba1b8dfdce5cf31f9d8c8d8c8cb1c6f6ccf13a4a7e9c4b9b2d5fbbd1d1f95"
+    "495563c283f5bd0f05ca528b506cba283e3a8493b0f2fba0ad70dc0ac1eb5df6"
   );
 });
