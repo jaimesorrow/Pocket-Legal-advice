@@ -1,0 +1,697 @@
+<title>Pocket Lawbook Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=Roboto:wght@400;500;700&display=swap">
+
+<style>
+  /* ── Stage tokens (the page around the phone) ───────────────────── */
+  :root{
+    --stage:#E4EAF0; --stage-2:#D3DDE7; --stage-ink:#0E2233;
+    --stage-muted:#5B7386; --stage-rule:#BFCEDB;
+    --stage-accent:#A87209;
+    /* ── App tokens: copied exactly from ui/theme/Theme.kt ────────── */
+    --app-primary:#1B4570;      /* FlagBlue    → Alaska */
+    --app-on-primary:#FFFFFF;
+    --app-secondary:#A87209;    /* FlagGold    → Federal */
+    --app-bg:#EDF1F5;           /* GroundLight */
+    --app-on-bg:#0E2233;        /* InkLight */
+    --app-surface:#FFFFFF;
+    --app-surface-var:#E3EAF1;
+    --app-on-surface-var:#33495B;
+    --app-outline:#C9D6E1;
+    --app-error:#A3302A;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --stage:#070E15; --stage-2:#0F1B26; --stage-ink:#E5EEF5;
+      --stage-muted:#8CA3B4; --stage-rule:#243748;
+      --stage-accent:#E0AE4B;
+      --app-primary:#7FB0E4; --app-on-primary:#08192B;
+      --app-secondary:#E0AE4B;
+      --app-bg:#0A141D; --app-on-bg:#E5EEF5;
+      --app-surface:#111F2B; --app-surface-var:#172937;
+      --app-on-surface-var:#C0D0DD; --app-outline:#2A3F51;
+      --app-error:#E8776F;
+    }
+  }
+  :root[data-theme="dark"]{
+    --stage:#070E15; --stage-2:#0F1B26; --stage-ink:#E5EEF5;
+    --stage-muted:#8CA3B4; --stage-rule:#243748;
+    --stage-accent:#E0AE4B;
+    --app-primary:#7FB0E4; --app-on-primary:#08192B;
+    --app-secondary:#E0AE4B;
+    --app-bg:#0A141D; --app-on-bg:#E5EEF5;
+    --app-surface:#111F2B; --app-surface-var:#172937;
+    --app-on-surface-var:#C0D0DD; --app-outline:#2A3F51;
+    --app-error:#E8776F;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--stage); color:var(--stage-ink);
+    font-family:"IBM Plex Mono",ui-monospace,monospace;
+    padding:36px 20px 72px; -webkit-font-smoothing:antialiased;
+  }
+  .shell{max-width:1080px; margin:0 auto}
+
+  header.top{margin-bottom:28px; max-width:62ch}
+  .eyebrow{
+    font-size:11.5px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--stage-muted); margin:0 0 12px;
+  }
+  h1{
+    font-family:Spectral,Georgia,serif; font-weight:700;
+    font-size:clamp(1.85rem,4.4vw,2.5rem); line-height:1.1;
+    letter-spacing:-.015em; margin:0 0 12px; text-wrap:balance;
+  }
+  .lede{
+    font-family:Spectral,Georgia,serif; font-size:1.04rem; line-height:1.55;
+    color:var(--stage-ink); opacity:.82; margin:0;
+  }
+
+  .layout{display:grid; grid-template-columns:minmax(0,340px) minmax(0,1fr); gap:34px; align-items:start}
+  @media (max-width:860px){ .layout{grid-template-columns:1fr} }
+
+  /* ── Phone ──────────────────────────────────────────────────────── */
+  .phone-wrap{position:sticky; top:24px}
+  @media (max-width:860px){ .phone-wrap{position:static} }
+  .phone{
+    width:100%; max-width:340px; margin:0 auto; aspect-ratio:9/19;
+    background:var(--app-bg); border:9px solid #10161C;
+    border-radius:32px; overflow:hidden; position:relative;
+    box-shadow:0 24px 60px rgba(0,0,0,.28), 0 2px 6px rgba(0,0,0,.2);
+    display:flex; flex-direction:column;
+    font-family:Roboto,system-ui,sans-serif; color:var(--app-on-bg);
+  }
+  .statusbar{
+    background:var(--app-bg); color:var(--app-on-surface-var);
+    font-size:10px; padding:5px 14px 2px; display:flex;
+    justify-content:space-between; font-family:Roboto,sans-serif; flex:none;
+  }
+  .appbar{
+    display:flex; align-items:center; gap:12px; padding:10px 12px;
+    background:var(--app-bg); flex:none;
+  }
+  .appbar button.ham{
+    background:none; border:none; cursor:pointer; padding:4px;
+    color:var(--app-on-bg); font-size:17px; line-height:1;
+  }
+  .appbar .title{font-size:15px; font-weight:500}
+  .disclaimer{
+    background:var(--app-surface-var); color:var(--app-on-surface-var);
+    font-size:9.5px; padding:6px 14px; line-height:1.35; flex:none;
+  }
+  .viewport{flex:1; overflow-y:auto; overflow-x:hidden; padding:16px 16px 28px; position:relative}
+  .viewport::-webkit-scrollbar{width:0}
+
+  /* app widgets */
+  .h-lg{font-size:20px; font-weight:700; margin:0 0 4px; line-height:1.25}
+  .h-md{font-size:15px; font-weight:700; margin:0 0 4px}
+  .body{font-size:12.5px; line-height:1.5; margin:0 0 10px}
+  .dim{color:var(--app-on-surface-var)}
+  .lbl{
+    font-size:9px; font-weight:700; letter-spacing:.11em; text-transform:uppercase;
+    color:var(--app-on-surface-var); margin:14px 0 6px;
+  }
+  .card{
+    background:var(--app-surface); border-radius:10px; padding:13px;
+    margin-bottom:9px; border:1px solid var(--app-outline);
+  }
+  .card.tap{cursor:pointer}
+  .card.tap:hover{border-color:var(--app-primary)}
+  .btn{
+    display:block; width:100%; border:none; border-radius:20px;
+    background:var(--app-primary); color:var(--app-on-primary);
+    font-family:Roboto,sans-serif; font-size:13px; font-weight:500;
+    padding:11px; cursor:pointer; margin-bottom:8px;
+  }
+  .btn:hover{filter:brightness(1.08)}
+  .btn.ghost{
+    background:transparent; color:var(--app-primary);
+    border:1px solid var(--app-outline);
+  }
+  .btn:disabled{opacity:.4; cursor:not-allowed}
+  .chip{
+    display:inline-block; font-size:8.5px; font-weight:700; letter-spacing:.09em;
+    padding:2px 6px; border-radius:3px; margin-bottom:7px;
+  }
+  .chip.ak{color:var(--app-primary); border:1px solid var(--app-primary); background:color-mix(in srgb,var(--app-primary) 9%,transparent)}
+  .chip.fed{color:var(--app-secondary); border:1px solid var(--app-secondary); background:color-mix(in srgb,var(--app-secondary) 9%,transparent)}
+  .field{
+    width:100%; font-family:Roboto,sans-serif; font-size:12px;
+    padding:10px; border-radius:7px; border:1px solid var(--app-outline);
+    background:var(--app-surface); color:var(--app-on-bg); margin-bottom:9px;
+    resize:none;
+  }
+  .field:focus{outline:2px solid var(--app-primary); outline-offset:-2px}
+  .step-row{display:flex; gap:11px; align-items:flex-start}
+  .step-n{color:var(--app-primary); font-weight:700; font-size:14px; flex:none}
+  .lockrow{display:flex; align-items:center; justify-content:space-between; gap:8px}
+  .lock-i{font-size:10px; opacity:.65}
+
+  /* drawer */
+  .scrim{
+    position:absolute; inset:0; background:rgba(0,0,0,.5);
+    z-index:5; display:none;
+  }
+  .scrim.open{display:block}
+  .drawer{
+    position:absolute; top:0; left:0; bottom:0; width:78%;
+    background:var(--app-surface); z-index:6; transform:translateX(-102%);
+    transition:transform .22s ease; overflow-y:auto; padding-bottom:20px;
+  }
+  .drawer.open{transform:translateX(0)}
+  @media (prefers-reduced-motion:reduce){ .drawer{transition:none} }
+  .drawer-head{padding:20px 18px 12px}
+  .drawer-head .n{font-size:15px; font-weight:700}
+  .drawer-head .t{font-size:10.5px; color:var(--app-on-surface-var); margin-top:2px}
+  .drawer hr{border:none; border-top:1px solid var(--app-outline); margin:0}
+  .d-lbl{
+    font-size:8.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--app-on-surface-var); padding:14px 18px 5px;
+  }
+  .d-item{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:9px 18px; font-size:12.5px; cursor:pointer; border:none;
+    background:none; width:100%; text-align:left; color:var(--app-on-bg);
+    font-family:Roboto,sans-serif;
+  }
+  .d-item:hover{background:var(--app-surface-var)}
+  .d-item.sel{background:color-mix(in srgb,var(--app-primary) 14%,transparent); font-weight:500}
+  .d-item.locked{color:var(--app-on-surface-var)}
+
+  /* ── Control panel ──────────────────────────────────────────────── */
+  .panel{display:flex; flex-direction:column; gap:22px}
+  .ctl{
+    background:var(--stage-2); border:1px solid var(--stage-rule);
+    border-radius:9px; padding:16px 17px;
+  }
+  .ctl h2{
+    font-family:Spectral,Georgia,serif; font-size:1.12rem; font-weight:600;
+    margin:0 0 4px;
+  }
+  .ctl p.note{font-size:11.5px; line-height:1.55; color:var(--stage-muted); margin:0 0 12px}
+  .seg{display:flex; gap:0; border:1px solid var(--stage-rule); border-radius:7px; overflow:hidden}
+  .seg button{
+    flex:1; border:none; background:transparent; cursor:pointer;
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px; padding:9px 4px;
+    color:var(--stage-ink); border-right:1px solid var(--stage-rule);
+  }
+  .seg button:last-child{border-right:none}
+  .seg button[aria-pressed="true"]{background:var(--stage-accent); color:#12161B; font-weight:500}
+  :root[data-theme="dark"] .seg button[aria-pressed="true"],
+  .seg button[aria-pressed="true"]{color:#12161B}
+  .jump{display:flex; flex-wrap:wrap; gap:6px}
+  .jump button{
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+    padding:6px 9px; border-radius:5px; cursor:pointer;
+    border:1px solid var(--stage-rule); background:transparent; color:var(--stage-ink);
+  }
+  .jump button:hover{border-color:var(--stage-accent)}
+  .jump button.cur{background:var(--stage-ink); color:var(--stage); border-color:var(--stage-ink)}
+  .try{display:flex; flex-wrap:wrap; gap:6px; margin-top:4px}
+  .try button{
+    font-family:"IBM Plex Mono",monospace; font-size:10px; padding:6px 8px;
+    border-radius:5px; cursor:pointer; border:1px dashed var(--stage-rule);
+    background:transparent; color:var(--stage-muted);
+  }
+  .try button:hover{color:var(--stage-ink); border-color:var(--stage-accent)}
+  .state-line{
+    font-size:11px; color:var(--stage-muted); margin-top:10px; line-height:1.5;
+  }
+  .state-line b{color:var(--stage-ink); font-weight:500}
+  button:focus-visible, .card.tap:focus-visible{outline:2px solid var(--stage-accent); outline-offset:2px}
+
+  footer{
+    margin-top:40px; padding-top:18px; border-top:1px solid var(--stage-rule);
+    font-size:11px; color:var(--stage-muted); line-height:1.6; max-width:70ch;
+  }
+</style>
+
+<div class="shell">
+  <header class="top">
+    <p class="eyebrow">Interactive preview · runs the real logic</p>
+    <h1>Alaska's Pocket Lawbook</h1>
+    <p class="lede">Not screenshots. The situation analyzer below runs the same five keyword rules
+    as <code>OnDeviceLegalAnalyzer.kt</code>, over the same seeded content, and the locks obey the
+    same rule as the app: signed in <em>and</em> subscribed.</p>
+  </header>
+
+  <div class="layout">
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="statusbar"><span>9:41</span><span>▮▮▮ ▲ ▰</span></div>
+        <div class="appbar">
+          <button class="ham" id="ham" aria-label="Open navigation">☰</button>
+          <span class="title" id="apptitle">Alaska's Pocket Lawbook</span>
+        </div>
+        <div class="disclaimer">Legal information, not legal advice. Alaska and federal law only.</div>
+        <div class="viewport" id="vp"></div>
+        <div class="scrim" id="scrim"></div>
+        <nav class="drawer" id="drawer"></nav>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ctl">
+        <h2>Account state</h2>
+        <p class="note">The gating rule is <code>hasPremiumAccess = SignedIn && Active</code>.
+        Flip these and watch the drawer locks and the paywall change — an account alone unlocks
+        nothing.</p>
+        <div class="seg" role="group" aria-label="Account state">
+          <button data-acct="out" aria-pressed="true">Signed out</button>
+          <button data-acct="in" aria-pressed="false">Signed in</button>
+          <button data-acct="sub" aria-pressed="false">Subscribed</button>
+        </div>
+        <p class="state-line" id="stateline"></p>
+      </div>
+
+      <div class="ctl">
+        <h2>Try the analyzer</h2>
+        <p class="note">Type anything on the "What happened?" screen, or use one of these. Matching
+        is literal substring, on-device, no network.</p>
+        <div class="try">
+          <button data-try="I was arrested and held overnight and nobody read me my rights">arrest + rights</button>
+          <button data-try="They searched my car without a warrant">warrantless search</button>
+          <button data-try="My landlord will not fix the heat">no heat</button>
+          <button data-try="I asked for a lawyer and they kept questioning me">counsel</button>
+          <button data-try="My neighbour's dog keeps barking">no match</button>
+        </div>
+      </div>
+
+      <div class="ctl">
+        <h2>Jump to a screen</h2>
+        <p class="note">Every destination in the nav graph. The consent gate is what a first launch
+        actually shows.</p>
+        <div class="jump" id="jump"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Copy, citations, colours and matching rules are transcribed from the working tree at
+    <code>eacb46e</code> — <code>VerifiedContentSeed.kt</code>, <code>OnDeviceLegalAnalyzer.kt</code>,
+    <code>Theme.kt</code>, and the screen composables. The seeded legal content is a five-entry
+    demonstration set and is <b>not attorney-reviewed</b>. Case law and AI chat show their locked
+    states because no corpus exists yet.
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ── Verified content: transcribed from VerifiedContentSeed.kt ──────────
+  var SEED = {
+    VIOLATION_48_HOUR_ARRAIGNMENT:{j:"FEDERAL",
+      d:"County of Riverside v. McLaughlin, 500 U.S. 44 (1991), applying Gerstein v. Pugh, 420 U.S. 103 (1975): a person arrested without a warrant is generally entitled to a judicial probable-cause determination within 48 hours.",
+      s:["Write down the date and time you were arrested, as precisely as you can recall.",
+         "Ask for a copy of your booking record, which shows the recorded time of arrest.",
+         "Tell your attorney how long you were held before seeing a judge.",
+         "Ask your attorney whether a motion based on the delay is appropriate in your case."]},
+    VIOLATION_MIRANDA_RIGHTS:{j:"FEDERAL",
+      d:"Miranda v. Arizona, 384 U.S. 436 (1966): before questioning someone who is in custody, police must advise them of the right to remain silent and the right to an attorney.",
+      s:["Write down what you were asked and what you said, while you still remember it.",
+         "Note whether you were free to leave at the time of the questioning.",
+         "Note whether you were read your rights, and at what point.",
+         "Give these notes to your attorney rather than discussing them with anyone else."]},
+    VIOLATION_RIGHT_TO_COUNSEL:{j:"FEDERAL",
+      d:"U.S. Const. amend. VI, and Miranda v. Arizona, 384 U.S. 436 (1966): you may ask for a lawyer, and questioning is to stop once you do.",
+      s:["Say clearly that you want a lawyer. An unambiguous request matters legally.",
+         "After asking for a lawyer, you do not have to answer further questions.",
+         "Write down the time you asked and whether questioning continued afterward.",
+         "If you cannot afford a lawyer, ask for the public defender."]},
+    VIOLATION_WARRANTLESS_SEARCH:{j:"FEDERAL",
+      d:"U.S. Const. amend. IV: searches are generally unreasonable without a warrant, subject to established exceptions.",
+      s:["Write down what was searched, when, and who was present.",
+         "Note whether you were shown a warrant, and whether you were asked for consent.",
+         "Note whether you said yes, said no, or said nothing at all.",
+         "Do not physically interfere with a search. Record what happened instead."]},
+    VIOLATION_LANDLORD_HABITABILITY:{j:"ALASKA",
+      d:"Alaska Uniform Residential Landlord and Tenant Act, AS 34.03.100: a landlord must maintain the premises in a fit and habitable condition, including supplying heat and running water.",
+      s:["Photograph the conditions and record the indoor temperature with the date.",
+         "Notify your landlord in writing and keep a copy of what you sent.",
+         "Keep receipts for anything you have to spend because of the condition.",
+         "Contact Alaska Legal Services Corporation if the condition is not fixed."]}
+  };
+
+  // ── Match rules: transcribed from OnDeviceLegalAnalyzer.kt ─────────────
+  var RULES = [
+    {k:"VIOLATION_48_HOUR_ARRAIGNMENT", any:["arrest","arrested","jail","held","booking","judge","arraign","custody"]},
+    {k:"VIOLATION_MIRANDA_RIGHTS",      any:["question","questioned","interrogat","my rights","read me","miranda","statement"]},
+    {k:"VIOLATION_RIGHT_TO_COUNSEL",    any:["lawyer","attorney","counsel","public defender"]},
+    {k:"VIOLATION_WARRANTLESS_SEARCH",  any:["search","searched","warrant","pulled me over","my car","my bag","my phone"]},
+    {k:"VIOLATION_LANDLORD_HABITABILITY",any:["landlord","rent","heat","furnace","apartment","eviction","water","mold"]}
+  ];
+
+  function analyze(q){
+    var h = (q||"").toLowerCase();
+    return RULES.filter(function(r){
+      return r.any.some(function(t){ return h.indexOf(t) !== -1; });
+    }).map(function(r){ return r.k; });
+  }
+
+  var LEGAL = {
+    disclaimer:{t:"Legal disclaimer", s:"This app gives legal information, not legal advice."},
+    terms:{t:"Terms of service", s:"The agreement between you and the provider."},
+    subscription:{t:"Subscription terms", s:"Price, renewal, and how to cancel."},
+    privacy:{t:"Privacy policy", s:"What is collected, what stays on your device, and what is not."},
+    "acceptable-use":{t:"Acceptable use", s:"What you may and may not do with the app and its content."},
+    sources:{t:"Content sources", s:"Where the law in this app comes from, and who reviewed it."}
+  };
+
+  // ── State ──────────────────────────────────────────────────────────────
+  var acct = "out";          // out | in | sub
+  var route = "consent";
+  var param = null;
+  var query = "";
+  var results = null;        // null = not yet run
+  var drawerOpen = false;
+
+  function unlocked(){ return acct === "sub"; }
+  function lockReason(){ return acct === "out" ? "NEEDS_ACCOUNT" : "NEEDS_SUBSCRIPTION"; }
+
+  var vp = document.getElementById("vp");
+  var drawer = document.getElementById("drawer");
+  var scrim = document.getElementById("scrim");
+  var titleEl = document.getElementById("apptitle");
+
+  function esc(s){
+    return String(s).replace(/[&<>"]/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];
+    });
+  }
+  function chip(j){
+    return j === "FEDERAL"
+      ? '<span class="chip fed">FEDERAL</span>'
+      : '<span class="chip ak">ALASKA</span>';
+  }
+
+  var TITLES = {
+    consent:"Alaska's Pocket Lawbook", welcome:"Alaska's Pocket Lawbook",
+    analyze:"What happened?", steps:"Action steps",
+    "law/alaska":"Alaska law", "law/federal":"Federal law",
+    "caseLaw/alaska":"Alaska case law", "caseLaw/federal":"Federal case law",
+    aiChat:"AI chat", signIn:"Sign in", signUp:"Sign up",
+    account:"Your account", paywall:"Subscription",
+    legal:"Legal & privacy", legalDoc:"Legal"
+  };
+
+  function go(r, p){ route = r; param = p || null; drawerOpen = false; render(); }
+
+  function lockCard(label){
+    var reason = lockReason();
+    return '<div class="card">' +
+      '<div class="h-md">' + esc(label) + ' is part of the subscription</div>' +
+      '<p class="body dim">' + (reason === "NEEDS_ACCOUNT"
+        ? "Create an account and subscribe for $10 / month to read Alaska and federal case law and to use the AI chat."
+        : "You&rsquo;re signed in. Subscribe for $10 / month to read Alaska and federal case law and to use the AI chat.") + '</p>' +
+      '<p class="body dim" style="font-size:11px">Alaska statutes, federal statutes, and the situation analyzer stay free and need no account.</p>' +
+      '<button class="btn" data-go="paywall">' +
+        (reason === "NEEDS_ACCOUNT" ? "Create an account" : "Subscribe") + '</button>' +
+      '</div>';
+  }
+
+  function screen(){
+    var h = "";
+    switch(route){
+      case "consent":
+        h += '<div class="h-lg">Before you start</div>';
+        h += '<div class="card">' +
+             '<div class="h-md">This app gives legal information, not legal advice.</div>' +
+             '<p class="body">It covers Alaska state law and federal law only. Using it does not create an attorney-client relationship, and nothing you type here is protected by attorney-client privilege.</p>' +
+             '<p class="body">The law changes. Content may be out of date or may not apply to your situation. For advice about your case, talk to a licensed Alaska attorney.</p>' +
+             '<p class="body" style="font-weight:700;margin:0">If you are in danger, call 911.</p></div>';
+        h += '<div class="lbl">Read in full</div>';
+        Object.keys(LEGAL).forEach(function(k){
+          h += '<div class="body" style="color:var(--app-primary);cursor:pointer" data-go="legalDoc" data-param="' + k + '">' + esc(LEGAL[k].t) + '</div>';
+        });
+        h += '<label class="body" style="display:flex;gap:8px;align-items:flex-start;margin-top:12px">' +
+             '<input type="checkbox" id="agree"><span>I understand this is legal information, not legal advice, and I agree to the terms of service and privacy policy.</span></label>';
+        h += '<button class="btn" id="acceptbtn" disabled>Continue</button>';
+        h += '<p class="body dim" style="font-size:10.5px">No account is needed to use the free tier.</p>';
+        break;
+
+      case "welcome":
+        h += '<div class="h-lg">Alaska&rsquo;s Pocket Lawbook</div>';
+        h += '<p class="body dim">Including all federal laws</p>';
+        h += '<div class="h-md" style="margin-top:10px">Know your rights, with sources you can check.</div>';
+        h += '<p class="body dim">Describe something that happened and see which Alaska or federal rights it touches, along with steps you can take. No account needed.</p>';
+        h += '<button class="btn" data-go="analyze">Describe what happened</button>';
+        h += '<div class="lbl">Browse the law</div>';
+        h += '<button class="btn ghost" data-go="law/alaska">Alaska law</button>';
+        h += '<button class="btn ghost" data-go="law/federal">Federal law</button>';
+        h += '<div class="card" style="margin-top:12px">' +
+             '<div class="lbl" style="margin-top:0">Case law extension</div>' +
+             '<div class="h-md">Alaska and federal case law, plus AI chat</div>' +
+             '<p class="body dim">Search decided cases from Alaska and the federal courts, and ask the AI chat questions that look up the statutes and cases behind the answer.</p>' +
+             '<p class="body" style="font-weight:700">$10 / month, with an account.</p>' +
+             '<button class="btn ghost" data-go="paywall">See what&rsquo;s included</button></div>';
+        break;
+
+      case "analyze":
+        h += '<div class="h-lg">What happened?</div>';
+        h += '<p class="body dim">Describe it in your own words. Nothing you type leaves your phone.</p>';
+        h += '<textarea class="field" id="q" rows="4" placeholder="For example: I was arrested and held overnight, and nobody read me my rights.">' + esc(query) + '</textarea>';
+        h += '<button class="btn" id="runbtn"' + (query.trim() ? "" : " disabled") + '>Find my rights</button>';
+        if (results !== null){
+          if (results.length === 0){
+            h += '<div class="card"><div class="h-md">Nothing verified matches that yet</div>' +
+                 '<p class="body dim" style="margin:0">Rather than guess, this app says nothing. Try describing what happened in different words, or talk to Alaska Legal Services Corporation.</p></div>';
+          } else {
+            h += '<div class="lbl">' + results.length + ' matched</div>';
+            results.forEach(function(k){
+              var e = SEED[k];
+              h += '<div class="card tap" tabindex="0" data-go="steps" data-param="' + k + '">' +
+                   chip(e.j) + '<p class="body" style="margin-bottom:6px">' + esc(e.d) + '</p>' +
+                   '<div class="body" style="color:var(--app-primary);margin:0;font-size:11.5px">' +
+                   e.s.length + ' steps you can take</div></div>';
+            });
+          }
+        }
+        break;
+
+      case "steps": {
+        var e = SEED[param];
+        if(!e){ h += '<p class="body">That entry isn&rsquo;t in the verified library.</p>'; break; }
+        h += chip(e.j);
+        h += '<div class="lbl" style="margin-top:6px">Source</div>';
+        h += '<p class="body">' + esc(e.d) + '</p>';
+        h += '<div class="lbl">What you can do</div>';
+        e.s.forEach(function(s,i){
+          h += '<div class="card"><div class="step-row"><span class="step-n">' + (i+1) +
+               '</span><span class="body" style="margin:0">' + esc(s) + '</span></div></div>';
+        });
+        h += '<p class="body dim" style="font-size:10.5px;margin-top:10px">These are general steps, not advice about your case. A licensed Alaska attorney can tell you what applies to your situation.</p>';
+        break;
+      }
+
+      case "law/alaska":
+      case "law/federal": {
+        var want = route === "law/federal" ? "FEDERAL" : "ALASKA";
+        var keys = Object.keys(SEED).filter(function(k){ return SEED[k].j === want; });
+        h += '<div class="h-lg">' + (want === "FEDERAL" ? "Federal law" : "Alaska law") + '</div>';
+        h += '<div class="lbl">' + keys.length + ' entries</div>';
+        keys.forEach(function(k){
+          h += '<div class="card tap" tabindex="0" data-go="steps" data-param="' + k + '">' +
+               chip(SEED[k].j) + '<p class="body" style="margin:0">' + esc(SEED[k].d) + '</p></div>';
+        });
+        break;
+      }
+
+      case "caseLaw/alaska":
+      case "caseLaw/federal": {
+        var lbl = route === "caseLaw/federal" ? "Federal case law" : "Alaska case law";
+        h += '<div class="h-lg">' + lbl + '</div>';
+        h += unlocked()
+          ? '<div class="card"><div class="h-md">Unlocked, but not yet populated</div><p class="body dim" style="margin:0">Your subscription is active. The ' + lbl + ' corpus has not been loaded into this build yet.</p></div>'
+          : lockCard(lbl);
+        break;
+      }
+
+      case "aiChat":
+        h += '<div class="h-lg">AI chat</div>';
+        h += '<p class="body dim">Ask a question and get an answer built from the Alaska and federal statutes and cases that bear on it, each one cited.</p>';
+        h += unlocked()
+          ? '<div class="card"><div class="h-md">Unlocked, but not yet built</div><p class="body dim" style="margin:0">Your subscription is active. The chat needs the case law corpus and the retrieval layer before it can answer anything, and it will not ship until it can cite every claim it makes.</p></div>'
+          : lockCard("AI chat");
+        break;
+
+      case "paywall":
+        h += '<div class="lbl" style="margin-top:0">Case law extension</div>';
+        h += '<div class="h-lg" style="font-size:26px">$10 / month</div>';
+        h += '<div class="card"><div class="lbl" style="margin-top:0">Included</div>' +
+             '<p class="body" style="margin:0">&bull; Alaska case law<br>&bull; Federal case law<br>&bull; AI chat</p></div>';
+        h += '<div class="card" style="background:var(--app-surface-var)">' +
+             '<div class="lbl" style="margin-top:0">Always free, no account</div>' +
+             '<p class="body" style="margin:0">Alaska statutes, federal statutes, and the situation analyzer. Knowing your rights should not be behind a paywall.</p></div>';
+        if (acct === "sub") h += '<p class="body" style="font-weight:700">You&rsquo;re subscribed. Case law and the AI chat are unlocked.</p>';
+        else if (acct === "in") h += '<button class="btn" data-acctset="sub">Subscribe &mdash; $10 / month</button>';
+        else { h += '<button class="btn" data-go="signUp">Create an account</button>';
+               h += '<button class="btn ghost" data-go="signIn">Sign in</button>'; }
+        break;
+
+      case "signIn":
+      case "signUp": {
+        var up = route === "signUp";
+        h += '<div class="h-lg">' + (up ? "Create an account" : "Sign in") + '</div>';
+        h += '<p class="body dim">An account is only needed for case law and the AI chat. Alaska statutes, federal statutes, and the situation analyzer stay free without one.</p>';
+        h += '<input class="field" placeholder="Email" type="email">';
+        h += '<input class="field" placeholder="Password" type="password">';
+        if (up) h += '<p class="body dim" style="font-size:10.5px;margin-top:-4px">At least 8 characters</p>';
+        h += '<button class="btn" data-acctset="in">' + (up ? "Create account" : "Sign in") + '</button>';
+        h += '<button class="btn ghost" data-go="' + (up ? "signIn" : "signUp") + '">' +
+             (up ? "Already have an account? Sign in" : "No account yet? Create one") + '</button>';
+        break;
+      }
+
+      case "account":
+        h += '<div class="h-lg">Your account</div>';
+        if (acct === "out"){
+          h += '<p class="body dim">You&rsquo;re not signed in. You don&rsquo;t need to be for Alaska statutes, federal statutes, or the situation analyzer.</p>';
+          h += '<button class="btn" data-go="signUp">Create an account</button>';
+          h += '<button class="btn ghost" data-go="signIn">Sign in</button>';
+        } else {
+          h += '<div class="card"><div class="lbl" style="margin-top:0">Signed in as</div>' +
+               '<p class="body" style="margin:0">you@example.com</p></div>';
+          h += '<div class="card"><div class="lbl" style="margin-top:0">Subscription</div>';
+          if (acct === "sub"){
+            h += '<div class="h-md">Active &mdash; $10 / month</div>' +
+                 '<p class="body dim" style="font-size:10.5px">Renews in 30 days.</p>' +
+                 '<button class="btn ghost" data-acctset="in">Cancel subscription</button>';
+          } else {
+            h += '<div class="h-md">Not subscribed</div>' +
+                 '<p class="body dim">Case law and the AI chat stay locked until you subscribe.</p>' +
+                 '<button class="btn" data-acctset="sub">Subscribe &mdash; $10 / month</button>';
+          }
+          h += '</div><button class="btn ghost" data-acctset="out">Sign out</button>';
+        }
+        break;
+
+      case "legal":
+        h += '<div class="h-lg">Legal</div>';
+        h += '<p class="body dim">The terms you agreed to, what this app does with your information, and where its content comes from.</p>';
+        Object.keys(LEGAL).forEach(function(k){
+          h += '<div class="card tap" tabindex="0" data-go="legalDoc" data-param="' + k + '">' +
+               '<div class="h-md" style="margin:0 0 2px">' + esc(LEGAL[k].t) + '</div>' +
+               '<p class="body dim" style="margin:0;font-size:11px">' + esc(LEGAL[k].s) + '</p></div>';
+        });
+        h += '<p class="body dim" style="font-size:10px;margin-top:10px">Version 1 &middot; [Effective date]</p>';
+        break;
+
+      case "legalDoc": {
+        var doc = LEGAL[param] || LEGAL.disclaimer;
+        h += '<div class="h-lg">' + esc(doc.t) + '</div>';
+        h += '<p class="body dim">' + esc(doc.s) + '</p>';
+        h += '<div class="card" style="background:var(--app-surface-var)"><p class="body" style="margin:0;font-size:11px">' +
+             'Full document text lives in <b>LegalDocuments.kt</b> &mdash; 6 documents, 33 sections. ' +
+             'All drafts, marked <b>not attorney-reviewed</b>.</p></div>';
+        h += '<button class="btn ghost" data-go="legal">Back to Legal</button>';
+        break;
+      }
+    }
+    return h;
+  }
+
+  function drawerHTML(){
+    var lock = ' <span class="lock-i">&#128274;</span>';
+    var u = unlocked();
+    var h = '<div class="drawer-head"><div class="n">Alaska&rsquo;s Pocket Lawbook</div>' +
+            '<div class="t">Including all federal laws</div></div><hr>';
+    h += '<div class="d-lbl">Account</div>';
+    h += '<button class="d-item" data-go="' + (acct==="out"?"signIn":"account") + '"' +
+         (acct!=="out" ? ' data-acctset="out"' : '') + '>' +
+         (acct === "out" ? "Sign in" : "Sign out") + '</button>';
+    h += '<button class="d-item' + (route==="account"?" sel":"") + '" data-go="account">User account</button>';
+    h += '<button class="d-item' + (route==="signUp"?" sel":"") + '" data-go="signUp">Sign up</button>';
+    h += '<hr><div class="d-lbl">Law</div>';
+    [["law/alaska","Alaska law",false],["law/federal","Federal law",false],
+     ["caseLaw/alaska","Alaska case law",true],["caseLaw/federal","Federal case law",true],
+     ["aiChat","AI chat",true]].forEach(function(it){
+      var locked = it[2] && !u;
+      h += '<button class="d-item' + (route===it[0]?" sel":"") + (locked?" locked":"") +
+           '" data-go="' + (locked ? "paywall" : it[0]) + '">' +
+           '<span>' + it[1] + '</span>' + (locked ? lock : "") + '</button>';
+    });
+    h += '<hr><div class="d-lbl">About</div>';
+    h += '<button class="d-item' + (route==="legal"?" sel":"") + '" data-go="legal">Legal &amp; privacy</button>';
+    if(!u){
+      h += '<hr><div class="d-lbl">Subscription</div>' +
+           '<p class="body dim" style="padding:0 18px;font-size:10.5px">$10 / month unlocks Alaska and federal case law and the AI chat.</p>';
+    }
+    return h;
+  }
+
+  function render(){
+    titleEl.textContent = TITLES[route] || "Alaska's Pocket Lawbook";
+    vp.innerHTML = screen();
+    drawer.innerHTML = drawerHTML();
+    drawer.classList.toggle("open", drawerOpen);
+    scrim.classList.toggle("open", drawerOpen);
+
+    document.querySelectorAll("#jump button").forEach(function(b){
+      b.classList.toggle("cur", b.dataset.jump === route);
+    });
+    document.querySelectorAll(".seg button").forEach(function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.acct === acct));
+    });
+    document.getElementById("stateline").innerHTML =
+      acct === "sub" ? "<b>Unlocked.</b> Signed in and subscription active &mdash; both conditions met."
+      : acct === "in" ? "<b>Still locked.</b> Signed in, but no active subscription. Lock reason: NEEDS_SUBSCRIPTION."
+      : "<b>Locked.</b> No account. Lock reason: NEEDS_ACCOUNT.";
+
+    var agree = document.getElementById("agree");
+    if (agree){
+      agree.addEventListener("change", function(){
+        document.getElementById("acceptbtn").disabled = !agree.checked;
+      });
+      document.getElementById("acceptbtn").addEventListener("click", function(){ go("welcome"); });
+    }
+    var q = document.getElementById("q");
+    if (q){
+      q.addEventListener("input", function(){
+        query = q.value;
+        document.getElementById("runbtn").disabled = !query.trim();
+      });
+      document.getElementById("runbtn").addEventListener("click", function(){
+        results = analyze(query); render();
+        vp.scrollTop = vp.scrollHeight;
+      });
+    }
+  }
+
+  // ── Delegated events ───────────────────────────────────────────────────
+  document.addEventListener("click", function(ev){
+    var t = ev.target.closest("[data-go],[data-acctset],[data-acct],[data-try],[data-jump]");
+    if(!t) return;
+    if (t.dataset.acct){ acct = t.dataset.acct; render(); return; }
+    if (t.dataset.try){ query = t.dataset.try; results = analyze(query); go("analyze"); return; }
+    if (t.dataset.jump){ if(t.dataset.jump==="analyze"){results=null;} go(t.dataset.jump); return; }
+    if (t.dataset.acctset) acct = t.dataset.acctset;
+    if (t.dataset.go) go(t.dataset.go, t.dataset.param);
+    else render();
+  });
+  document.addEventListener("keydown", function(ev){
+    if (ev.key !== "Enter" && ev.key !== " ") return;
+    var t = ev.target.closest(".card.tap[data-go]");
+    if(!t) return;
+    ev.preventDefault(); go(t.dataset.go, t.dataset.param);
+  });
+  document.getElementById("ham").addEventListener("click", function(){
+    drawerOpen = !drawerOpen; render();
+  });
+  scrim.addEventListener("click", function(){ drawerOpen = false; render(); });
+
+  // ── Jump list ──────────────────────────────────────────────────────────
+  var JUMPS = [["consent","Consent gate"],["welcome","Welcome"],["analyze","Analyze"],
+    ["law/alaska","Alaska law"],["law/federal","Federal law"],
+    ["caseLaw/alaska","AK case law"],["caseLaw/federal","Fed case law"],
+    ["aiChat","AI chat"],["paywall","Paywall"],["signUp","Sign up"],
+    ["account","Account"],["legal","Legal"]];
+  document.getElementById("jump").innerHTML = JUMPS.map(function(j){
+    return '<button data-jump="' + j[0] + '">' + j[1] + '</button>';
+  }).join("");
+
+  render();
+})();
+</script>
