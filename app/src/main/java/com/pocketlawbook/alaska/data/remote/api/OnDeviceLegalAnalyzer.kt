@@ -16,9 +16,22 @@ import com.pocketlawbook.alaska.data.remote.model.ViolationDetail
  * because a remote LLM backend would populate them, and the pipeline's whole job
  * is to discard them. Leaving them empty here makes that contract obvious — the
  * key is the only field anything downstream is allowed to read.
+ *
+ * ## Why terms match at a word boundary
+ *
+ * Plain `contains` finds keywords buried inside unrelated words, and in this app
+ * that means showing a frightened person law that has nothing to do with them:
+ * "rent" sits inside "parent", "current" and "apparent", so "my parent was
+ * arrested" claimed a landlord dispute; "search" sits inside "research".
+ *
+ * Terms therefore match only at the start of a word, but may run past the end of
+ * one — a prefix match. "arrest" still reaches "arrested", "question" reaches
+ * "questioned", and "interrogat" reaches both "interrogated" and
+ * "interrogation", while "rent" no longer reaches "parent". Because matching is
+ * prefix-based, a rule lists the shortest stem rather than each inflection.
  */
 class OnDeviceLegalAnalyzer(
-    private val rules: List<MatchRule> = DEFAULT_RULES
+    rules: List<MatchRule> = DEFAULT_RULES
 ) : LegalApiService {
 
     /** A violation key and the terms that suggest it. */
@@ -27,11 +40,19 @@ class OnDeviceLegalAnalyzer(
         val anyOf: List<String>
     )
 
+    /** Rules with their term patterns compiled once, not per query. */
+    private val compiled: List<Pair<String, List<Regex>>> = rules.map { rule ->
+        rule.violationKey to rule.anyOf.map { term ->
+            Regex("\\b" + Regex.escape(term), RegexOption.IGNORE_CASE)
+        }
+    }
+
     override suspend fun analyzeLegalSituation(query: String): LegalViolationApiResponse {
-        val haystack = query.lowercase()
-        val matched = rules
-            .filter { rule -> rule.anyOf.any { haystack.contains(it) } }
-            .map { ViolationDetail(key = it.violationKey, title = "", description = "", recommendation = "") }
+        val matched = compiled
+            .filter { (_, patterns) -> patterns.any { it.containsMatchIn(query) } }
+            .map { (key, _) ->
+                ViolationDetail(key = key, title = "", description = "", recommendation = "")
+            }
         return LegalViolationApiResponse(violations = matched)
     }
 
@@ -39,11 +60,11 @@ class OnDeviceLegalAnalyzer(
         private val DEFAULT_RULES = listOf(
             MatchRule(
                 VerifiedContentSeed.KEY_PROMPT_PROBABLE_CAUSE,
-                listOf("arrest", "arrested", "jail", "held", "booking", "judge", "arraign", "custody")
+                listOf("arrest", "jail", "held", "booking", "judge", "arraign", "custody")
             ),
             MatchRule(
                 VerifiedContentSeed.KEY_MIRANDA,
-                listOf("question", "questioned", "interrogat", "my rights", "read me", "miranda", "statement")
+                listOf("question", "interrogat", "my rights", "read me", "miranda", "statement")
             ),
             MatchRule(
                 VerifiedContentSeed.KEY_COUNSEL,
@@ -51,7 +72,7 @@ class OnDeviceLegalAnalyzer(
             ),
             MatchRule(
                 VerifiedContentSeed.KEY_SEARCH_WITHOUT_WARRANT,
-                listOf("search", "searched", "warrant", "pulled me over", "my car", "my bag", "my phone")
+                listOf("search", "warrant", "pulled me over", "my car", "my bag", "my phone")
             ),
             MatchRule(
                 VerifiedContentSeed.KEY_HABITABILITY_HEAT,
