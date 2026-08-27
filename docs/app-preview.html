@@ -276,6 +276,7 @@
           <button data-try="My landlord will not fix the heat">no heat</button>
           <button data-try="I asked for a lawyer and they kept questioning me">counsel</button>
           <button data-try="My neighbour's dog keeps barking">no match</button>
+          <button data-try="My parent was arrested and questioned">parent (was a bug)</button>
         </div>
       </div>
 
@@ -337,17 +338,24 @@
 
   // ── Match rules: transcribed from OnDeviceLegalAnalyzer.kt ─────────────
   var RULES = [
-    {k:"VIOLATION_48_HOUR_ARRAIGNMENT", any:["arrest","arrested","jail","held","booking","judge","arraign","custody"]},
-    {k:"VIOLATION_MIRANDA_RIGHTS",      any:["question","questioned","interrogat","my rights","read me","miranda","statement"]},
+    {k:"VIOLATION_48_HOUR_ARRAIGNMENT", any:["arrest","jail","held","booking","judge","arraign","custody"]},
+    {k:"VIOLATION_MIRANDA_RIGHTS",      any:["question","interrogat","my rights","read me","miranda","statement"]},
     {k:"VIOLATION_RIGHT_TO_COUNSEL",    any:["lawyer","attorney","counsel","public defender"]},
-    {k:"VIOLATION_WARRANTLESS_SEARCH",  any:["search","searched","warrant","pulled me over","my car","my bag","my phone"]},
+    {k:"VIOLATION_WARRANTLESS_SEARCH",  any:["search","warrant","pulled me over","my car","my bag","my phone"]},
     {k:"VIOLATION_LANDLORD_HABITABILITY",any:["landlord","rent","heat","furnace","apartment","eviction","water","mold"]}
   ];
 
+  // Word-boundary prefix match, mirroring OnDeviceLegalAnalyzer: a term matches
+  // at the start of a word and may run past its end, so "arrest" reaches
+  // "arrested" while "rent" no longer reaches "parent".
+  function esc_re(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+  var COMPILED = RULES.map(function(r){
+    return { k:r.k, pats:r.any.map(function(t){ return new RegExp("\\b" + esc_re(t), "i"); }) };
+  });
   function analyze(q){
-    var h = (q||"").toLowerCase();
-    return RULES.filter(function(r){
-      return r.any.some(function(t){ return h.indexOf(t) !== -1; });
+    var text = q || "";
+    return COMPILED.filter(function(r){
+      return r.pats.some(function(p){ return p.test(text); });
     }).map(function(r){ return r.k; });
   }
 
