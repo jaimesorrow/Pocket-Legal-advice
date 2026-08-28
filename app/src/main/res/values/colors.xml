@@ -1,0 +1,6 @@
+<resources>
+    <!-- Adaptive-icon background field. Matches the flag-blue used for Alaska
+         jurisdiction content in ui.theme.Theme.kt, so the launcher icon reads
+         as the same brand as the app. -->
+    <color name="ic_launcher_background">#1B4570</color>
+</resources>

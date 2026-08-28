@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pre-Android-12 equivalent of data_extraction_rules.xml (API < 31 reads this
+     schema instead). Keep the two in sync. -->
+<full-backup-content>
+    <include domain="sharedpref" path="." />
+</full-backup-content>

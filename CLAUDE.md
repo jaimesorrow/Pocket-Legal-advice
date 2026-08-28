@@ -13,9 +13,20 @@ with the jurisdiction it comes from (`ALASKA` or `FEDERAL`), and the UI must dis
 answer rests on. Never add content from another state's law, and never let an answer imply
 nationwide applicability when it is Alaska-specific.
 
-**No accounts:** the app has no sign-in, no user profile, and no server-side identity. It launches
-straight to the main screen. This is deliberate — users asking about arrests or evictions should not
-have that tied to an account. Do not introduce auth without an explicit decision to do so.
+**Accounts and subscriptions exist, but only as an unwired stub — do not treat this as license to
+deepen them casually.** The free tier (situation analysis, statute browsing, legal disclosures) has
+no sign-in and needs none. A separate premium tier (case law, AI chat) is gated behind
+`AccountRepository`/`BillingRepository`, both explicitly documented in their own files as local-only
+stubs: `InMemoryAccountRepository` authenticates nobody and forgets state on process death;
+`StubBillingRepository` charges nobody. `functions/index.js` is the real, unreviewed-in-production
+design for the server side of this (Play purchase-token validation, entitlement records, real-time
+notifications, account deletion) — written but never deployed, since that needs a live Firebase
+project and Play Console app this repo does not have. Before this ships: (1) a real auth backend,
+(2) the Firebase functions deployed and wired to real Play Billing, (3) entitlement checked
+server-side, never client-side. If you are asked to build toward that, the seam is already in
+`AppContainer` — swap the two `Stub`/`InMemory` implementations there. If you are asked to remove
+accounts entirely and go back to a free-only app, the cut points are the same two lines in
+`AppContainer` plus the drawer/paywall routes in `ui.navigation`.
 
 **Current repository state:** the core pipeline described below is implemented and building.
 `AppContainer` (hand-rolled DI, no Hilt) wires a Room-backed `ActionStepDao`, an on-device
@@ -34,6 +45,12 @@ Implementation notes on the two data sources:
   than a remote HTTP call — this keeps the analysis feature working offline and means the "remote"
   side of the pipeline cannot itself hallucinate. A real network-backed implementation can still be
   swapped in later; `LegalAnalysisRepository` only depends on the `LegalApiService` interface.
+
+Known gaps blocking a Play Store release: accounts/billing are client-only stubs as described
+above; `VerifiedContentSeed` is not attorney-reviewed; and `.circleci/config.yml` exists but the
+CircleCI project has never been connected/followed on CircleCI's side (its API returns "Project not
+found" for this repo), so **no CI actually runs on pushes or PRs** — connecting it is an action in
+the CircleCI dashboard, not something fixable from a commit.
 
 ## Build & test commands
 

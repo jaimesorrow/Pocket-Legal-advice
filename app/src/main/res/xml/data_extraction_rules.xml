@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Android 12+ backup/transfer rules. The app currently persists only the
+     legal-disclaimer consent flag (SharedPreferences, data.legal.ConsentRepository)
+     — no account credentials or situation text are ever written to disk, so the
+     default (include everything) is safe today. This file exists so backup
+     scope is an explicit, reviewed decision rather than the platform default,
+     and so it is the one place to exclude a preference file if a future one
+     ever holds something sensitive.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="sharedpref" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="sharedpref" path="." />
+    </device-transfer>
+</data-extraction-rules>

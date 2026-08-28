@@ -8,7 +8,6 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
@@ -77,8 +76,11 @@ fun PocketLawbookTheme(
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
+            // The app draws edge-to-edge (enabled in MainActivity), so the status
+            // bar itself is transparent; only its icon contrast is set here.
+            // Setting Window.statusBarColor is deprecated and, on apps targeting
+            // API 35+, ignored by the platform in favor of edge-to-edge.
             val window = (view.context as Activity).window
-            window.statusBarColor = scheme.background.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
