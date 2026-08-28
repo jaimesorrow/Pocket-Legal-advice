@@ -11,7 +11,8 @@ import com.pocketlawbook.alaska.data.legal.ConsentRepository
 import com.pocketlawbook.alaska.data.legal.SharedPrefsConsentRepository
 import com.pocketlawbook.alaska.data.local.VerifiedContentSeed
 import com.pocketlawbook.alaska.data.local.dao.ActionStepDao
-import com.pocketlawbook.alaska.data.local.dao.SeededActionStepDao
+import com.pocketlawbook.alaska.data.local.dao.RoomActionStepDao
+import com.pocketlawbook.alaska.data.local.db.PocketLawbookDatabase
 import com.pocketlawbook.alaska.data.local.entity.ActionStepEntity
 import com.pocketlawbook.alaska.data.local.entity.Jurisdiction
 import com.pocketlawbook.alaska.data.remote.api.LegalApiService
@@ -23,8 +24,8 @@ import com.pocketlawbook.alaska.viewmodel.LegalAnalysisViewModel
  * Hand-rolled dependency container.
  *
  * Small enough that Hilt would be overhead today. The reason to keep construction
- * in one place is that the interesting swaps are all here: [ActionStepDao] becomes
- * Room, [LegalApiService] may gain a remote implementation, [AccountRepository]
+ * in one place is that the interesting swaps are all here: [ActionStepDao] is
+ * Room-backed, [LegalApiService] may gain a remote implementation, [AccountRepository]
  * becomes Firebase Auth, and [BillingRepository] becomes Play Billing backed by
  * server-side entitlement.
  */
@@ -32,7 +33,9 @@ class AppContainer(context: Context) {
 
     private val appContext = context.applicationContext
 
-    val actionStepDao: ActionStepDao = SeededActionStepDao()
+    private val database = PocketLawbookDatabase.getInstance(appContext)
+
+    val actionStepDao: ActionStepDao = RoomActionStepDao(database.actionStepDao())
 
     val legalApiService: LegalApiService = OnDeviceLegalAnalyzer()
 
