@@ -10,7 +10,7 @@ import com.pocketlawbook.alaska.data.local.entity.ActionStepEntity
  * touching any of the row's string content, so DB-sourced text still reaches
  * the UI byte-for-byte.
  */
-class RoomActionStepDao(
+class RoomActionStepDao internal constructor(
     private val roomDao: ActionStepRoomDao
 ) : ActionStepDao {
 
