@@ -17,14 +17,23 @@ nationwide applicability when it is Alaska-specific.
 straight to the main screen. This is deliberate — users asking about arrests or evictions should not
 have that tied to an account. Do not introduce auth without an explicit decision to do so.
 
-**Current repository state:** the core pipeline described below is implemented and building. The
-whole app is one `MainActivity` with a placeholder Composable — there is no navigation graph and no
-real UI yet. `LegalAnalysisViewModelTest` (21 tests, all passing) remains the executable spec for the
-pipeline; treat it as authoritative when changing any of these classes.
+**Current repository state:** the core pipeline described below is implemented and building.
+`AppContainer` (hand-rolled DI, no Hilt) wires a Room-backed `ActionStepDao`, an on-device
+`LegalApiService` implementation, and the `LegalAnalysisViewModel` together; `PocketLawbookApp`
+provides a navigation graph with a welcome screen, drawer navigation, the analysis/action-steps
+slice, account/legal/subscription screens, and a daily legal-content-refresh `WorkManager` job.
+`LegalAnalysisViewModelTest` (21 tests, all passing) remains the executable spec for the pipeline;
+treat it as authoritative when changing any of these classes.
 
-Known gaps: `ActionStepDao` is a plain interface with no Room annotations and no backing database;
-`LegalApiService` has no HTTP implementation; there is no dependency injection wiring the ViewModel
-to real implementations; and no screen actually exercises the pipeline.
+Implementation notes on the two data sources:
+- `ActionStepDao` is backed by Room (`data.local.db.PocketLawbookDatabase`,
+  `RoomActionStepDao`), seeded on first launch from `VerifiedContentSeed` — which is explicitly
+  **not yet attorney-reviewed** (see the warning on that object) and must be replaced by a
+  reviewed, versioned dataset before release.
+- `LegalApiService` is `OnDeviceLegalAnalyzer`, a local keyword-matching implementation rather
+  than a remote HTTP call — this keeps the analysis feature working offline and means the "remote"
+  side of the pipeline cannot itself hallucinate. A real network-backed implementation can still be
+  swapped in later; `LegalAnalysisRepository` only depends on the `LegalApiService` interface.
 
 ## Build & test commands
 
