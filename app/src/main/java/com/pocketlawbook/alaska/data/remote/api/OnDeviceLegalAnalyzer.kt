@@ -39,23 +39,55 @@ class OnDeviceLegalAnalyzer(
         private val DEFAULT_RULES = listOf(
             MatchRule(
                 VerifiedContentSeed.KEY_PROMPT_PROBABLE_CAUSE,
-                listOf("arrest", "arrested", "jail", "held", "booking", "judge", "arraign", "custody")
+                listOf(
+                    "arrest", "arrested", "jail", "held", "booking", "booked", "judge", "arraign",
+                    "custody", "handcuff", "locked up", "overnight", "took me in", "detained",
+                    "detention"
+                )
             ),
             MatchRule(
                 VerifiedContentSeed.KEY_MIRANDA,
-                listOf("question", "questioned", "interrogat", "my rights", "read me", "miranda", "statement")
+                listOf(
+                    "question", "questioned", "interrogat", "my rights", "read me", "miranda",
+                    "statement", "kept asking", "interview room", "wouldn't let me leave",
+                    "wasn't free to leave", "not free to leave", "grilled me", "never mirandized"
+                )
             ),
             MatchRule(
                 VerifiedContentSeed.KEY_COUNSEL,
-                listOf("lawyer", "attorney", "counsel", "public defender")
+                listOf(
+                    "lawyer", "attorney", "counsel", "public defender", "wouldn't let me call"
+                )
             ),
             MatchRule(
                 VerifiedContentSeed.KEY_SEARCH_WITHOUT_WARRANT,
-                listOf("search", "searched", "warrant", "pulled me over", "my car", "my bag", "my phone")
+                listOf(
+                    "search", "searched", "warrant", "pulled me over", "my car", "my bag", "my phone",
+                    "my truck", "my backpack", "my house", "my apartment", "went through my",
+                    "patted me down", "pat down", "frisked"
+                )
             ),
             MatchRule(
                 VerifiedContentSeed.KEY_HABITABILITY_HEAT,
-                listOf("landlord", "rent", "heat", "furnace", "apartment", "eviction", "water", "mold")
+                listOf(
+                    "landlord", "rent", "heat", "furnace", "apartment", "eviction", "evict", "water",
+                    "mold", "won't fix", "wont fix", "hasn't fixed", "pest", "infestation",
+                    "broken pipe"
+                )
+            ),
+            MatchRule(
+                VerifiedContentSeed.KEY_LANDLORD_NONPAYMENT_NOTICE,
+                listOf(
+                    "pay or quit", "notice to pay", "nonpayment", "behind on rent", "notice to vacate",
+                    "unpaid rent", "didn't pay rent", "couldn't pay rent"
+                )
+            ),
+            MatchRule(
+                VerifiedContentSeed.KEY_RECORDING_POLICE,
+                listOf(
+                    "recording", "filming", "filmed", "took my phone", "stop filming",
+                    "wouldn't let me record", "took my camera", "made me delete"
+                )
             )
         )
     }

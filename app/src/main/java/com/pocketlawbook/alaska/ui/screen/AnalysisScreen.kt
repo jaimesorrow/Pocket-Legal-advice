@@ -75,6 +75,14 @@ fun AnalysisScreen(
             placeholder = { Text("For example: I was arrested and held overnight, and nobody read me my rights.") }
         )
 
+        Text(
+            text = "This matches your description against a short list of common situations. It is " +
+                "not exhaustive: a match below is real, but no match, or a partial one, does not " +
+                "mean nothing was wrong. When in doubt, talk to a lawyer.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
         Button(
             onClick = { onAnalyze(query) },
             enabled = query.isNotBlank() && uiState !is LegalAnalysisUiState.Loading,
