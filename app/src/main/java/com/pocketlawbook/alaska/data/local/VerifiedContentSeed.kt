@@ -27,6 +27,8 @@ object VerifiedContentSeed {
     const val KEY_COUNSEL = "VIOLATION_RIGHT_TO_COUNSEL"
     const val KEY_SEARCH_WITHOUT_WARRANT = "VIOLATION_WARRANTLESS_SEARCH"
     const val KEY_HABITABILITY_HEAT = "VIOLATION_LANDLORD_HABITABILITY"
+    const val KEY_LANDLORD_NONPAYMENT_NOTICE = "VIOLATION_LANDLORD_NONPAYMENT_NOTICE"
+    const val KEY_RECORDING_POLICE = "VIOLATION_RIGHT_TO_RECORD_POLICE"
 
     val entries: Map<String, ActionStepEntity> = listOf(
         ActionStepEntity(
@@ -90,6 +92,38 @@ object VerifiedContentSeed {
                 "Notify your landlord in writing and keep a copy of what you sent.",
                 "Keep receipts for anything you have to spend because of the condition.",
                 "Contact Alaska Legal Services Corporation if the condition is not fixed."
+            )
+        ),
+        ActionStepEntity(
+            violationKey = KEY_LANDLORD_NONPAYMENT_NOTICE,
+            jurisdiction = Jurisdiction.ALASKA,
+            description = "AS 34.03.220(b): if rent is unpaid, a landlord must give written notice " +
+                "of the nonpayment and of the intent to terminate the tenancy. The tenant then has " +
+                "7 days after that notice to pay the rent in full before the landlord may terminate " +
+                "the rental agreement and recover possession.",
+            actionSteps = listOf(
+                "Check whether the notice you got is in writing and says you have 7 days to pay in full.",
+                "If you can pay within those 7 days, do so and keep a receipt or other proof of payment.",
+                "If you were not given written notice, or given fewer than 7 days, write down exactly " +
+                    "when and how you were told to leave.",
+                "Contact Alaska Legal Services Corporation before you move out or sign anything the " +
+                    "landlord gives you."
+            )
+        ),
+        ActionStepEntity(
+            violationKey = KEY_RECORDING_POLICE,
+            jurisdiction = Jurisdiction.FEDERAL,
+            description = "Fordyce v. City of Seattle, 55 F.3d 436 (9th Cir. 1995): the Ninth Circuit " +
+                "(which includes Alaska) recognized a First Amendment right to film matters of public " +
+                "interest, including police officers carrying out their duties in a public place.",
+            actionSteps = listOf(
+                "If you can do so safely, without touching the officer or blocking their movement, " +
+                    "you may record police performing their duties in a public place.",
+                "Do not physically interfere or ignore a lawful order to step back — recording is " +
+                    "protected, obstruction is not.",
+                "If an officer orders you to stop recording or takes your device, note the officer's " +
+                    "name, badge number, and the time, as soon as you safely can.",
+                "Do not delete anything from your device. Write down what happened while you remember it."
             )
         )
     ).associateBy { it.violationKey }
