@@ -42,11 +42,13 @@ data class DrawerEntry(
 /**
  * Drawer contents, in display order.
  *
- * Accounts, billing, case law, and AI chat are not shipped features — the code
- * for them exists (AccountRepository, BillingRepository, GatedScreens) but is
- * intentionally not reachable from here until each has a real backend behind
- * it. Surfacing a lock icon for a feature with nothing behind the lock is
- * worse than not mentioning it. See CLAUDE.md.
+ * Accounts, billing, and case law are not shipped features — the code for them
+ * exists (AccountRepository, BillingRepository, GatedScreens.CaseLawScreen) but
+ * is intentionally not reachable from here until each has a real backend
+ * behind it. Surfacing a lock icon for a feature with nothing behind the lock
+ * is worse than not mentioning it. AI chat is the exception: it now has a real
+ * (if network-optional) implementation, so it's ungated rather than parked
+ * behind the still-fake billing flow. See CLAUDE.md.
  */
 object DrawerSections {
 
@@ -54,7 +56,8 @@ object DrawerSections {
 
     val library = listOf(
         DrawerEntry(Routes.ALASKA_LAW, "Alaska law"),
-        DrawerEntry(Routes.FEDERAL_LAW, "Federal law")
+        DrawerEntry(Routes.FEDERAL_LAW, "Federal law"),
+        DrawerEntry(Routes.AI_CHAT, "AI chat")
     )
 
     /** Always reachable. Play requires the privacy policy to be available in-app. */

@@ -24,6 +24,7 @@ import com.pocketlawbook.alaska.R
 import com.pocketlawbook.alaska.data.account.LockReason
 import com.pocketlawbook.alaska.data.account.SubscriptionPlan
 import com.pocketlawbook.alaska.data.local.entity.Jurisdiction
+import com.pocketlawbook.alaska.ui.model.VerifiedActionStep
 import com.pocketlawbook.alaska.ui.theme.jurisdictionColor
 
 /**
@@ -96,17 +97,17 @@ fun LockedFeatureNotice(
                 text = when (reason) {
                     LockReason.NEEDS_ACCOUNT ->
                         "Create an account and subscribe for ${SubscriptionPlan.FULL_DISPLAY} to " +
-                            "read Alaska and federal case law and to use the AI chat."
+                            "read $featureLabel."
                     LockReason.NEEDS_SUBSCRIPTION ->
                         "You're signed in. Subscribe for ${SubscriptionPlan.FULL_DISPLAY} to " +
-                            "read Alaska and federal case law and to use the AI chat."
+                            "read $featureLabel."
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "Alaska statutes, federal statutes, and the situation analyzer stay free " +
-                    "and need no account.",
+                text = "Alaska statutes, federal statutes, the situation analyzer, and AI chat " +
+                    "stay free and need no account.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -128,6 +129,43 @@ fun LockedFeatureNotice(
                     modifier = Modifier.padding(top = 2.dp)
                 )
             }
+        }
+    }
+}
+
+/**
+ * Renders one verified match: jurisdiction, description, and step count, straight
+ * from the local store. Shared by the analysis screen and the chat screen so a
+ * match looks the same everywhere it's shown, regardless of which of the two
+ * paths (keyword match or model-selected candidate) surfaced it.
+ */
+@Composable
+fun VerifiedMatchCard(
+    step: VerifiedActionStep,
+    jurisdiction: Jurisdiction,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            JurisdictionChip(jurisdiction)
+            // Verified description, straight from the store, unmodified.
+            Text(
+                text = step.description,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = "${step.steps.size} steps you can take",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }

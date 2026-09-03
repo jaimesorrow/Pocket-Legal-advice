@@ -1,9 +1,22 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
 }
+
+// Local-only secret for AnthropicFramingService, read from a gitignored file so
+// it is never committed. Absent entirely -> empty string -> AppContainer falls
+// back to NullFramingService and the chat feature still builds and runs, just
+// without model framing. See AnthropicFramingService's doc comment: this is a
+// dev-only wiring, not how a shipped build should ever hold this key.
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+val anthropicApiKey: String = localProperties.getProperty("anthropicApiKey") ?: ""
 
 android {
     namespace = "com.pocketlawbook.alaska"
@@ -17,6 +30,7 @@ android {
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "ANTHROPIC_API_KEY", "\"$anthropicApiKey\"")
     }
 
     buildTypes {
@@ -43,6 +57,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     packaging {
         resources {
@@ -68,10 +83,15 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+    implementation(libs.okhttp)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
+    // Android's org.json classes are stubs (throw "not mocked") on the local
+    // JVM unit-test classpath; this puts a real implementation in front of
+    // that stub so FramingResponseParserTest exercises real JSON parsing.
+    testImplementation(libs.json)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

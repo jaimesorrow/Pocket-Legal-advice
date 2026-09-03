@@ -28,10 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pocketlawbook.alaska.data.local.entity.Jurisdiction
-import com.pocketlawbook.alaska.ui.component.JurisdictionChip
 import com.pocketlawbook.alaska.ui.component.SectionLabel
+import com.pocketlawbook.alaska.ui.component.VerifiedMatchCard
 import com.pocketlawbook.alaska.ui.model.LegalAnalysisUiState
-import com.pocketlawbook.alaska.ui.model.VerifiedActionStep
 
 /**
  * Describe a situation, get back the rights it touches.
@@ -110,7 +109,7 @@ fun AnalysisScreen(
                 } else {
                     SectionLabel("${uiState.verifiedActionSteps.size} matched")
                     uiState.verifiedActionSteps.forEach { step ->
-                        ResultCard(
+                        VerifiedMatchCard(
                             step = step,
                             jurisdiction = jurisdictionFor(step.violationKey),
                             onClick = { onOpenSteps(step.violationKey) }
@@ -133,36 +132,6 @@ fun AnalysisScreen(
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun ResultCard(
-    step: VerifiedActionStep,
-    jurisdiction: Jurisdiction,
-    onClick: () -> Unit
-) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            JurisdictionChip(jurisdiction)
-            // Verified description, straight from the store, unmodified.
-            Text(
-                text = step.description,
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = "${step.steps.size} steps you can take",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
         }
     }
 }

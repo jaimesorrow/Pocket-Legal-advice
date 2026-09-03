@@ -47,6 +47,7 @@ import com.pocketlawbook.alaska.ui.screen.LawBrowseScreen
 import com.pocketlawbook.alaska.ui.screen.PaywallScreen
 import com.pocketlawbook.alaska.ui.screen.WelcomeScreen
 import com.pocketlawbook.alaska.viewmodel.AccountViewModel
+import com.pocketlawbook.alaska.viewmodel.ChatViewModel
 import com.pocketlawbook.alaska.viewmodel.LegalAnalysisViewModel
 import kotlinx.coroutines.launch
 
@@ -212,10 +213,15 @@ private fun AppNavHost(
         }
 
         composable(Routes.AI_CHAT) {
+            val vm: ChatViewModel = viewModel(factory = container.chatViewModelFactory)
+            val turns by vm.turns.collectAsStateWithLifecycle()
+            val isAsking by vm.isAsking.collectAsStateWithLifecycle()
             AiChatScreen(
-                unlocked = unlocked,
-                lockReason = lockReason,
-                onUnlock = { onNavigate(Routes.PAYWALL) }
+                turns = turns,
+                isAsking = isAsking,
+                onAsk = vm::ask,
+                onOpenSteps = { key -> onNavigate(Routes.actionSteps(key)) },
+                jurisdictionFor = container::jurisdictionOf
             )
         }
 
