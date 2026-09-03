@@ -21,9 +21,17 @@ have that tied to an account. Do not introduce auth without an explicit decision
 `AppContainer` (hand-rolled DI, no Hilt) wires a Room-backed `ActionStepDao`, an on-device
 `LegalApiService` implementation, and the `LegalAnalysisViewModel` together; `PocketLawbookApp`
 provides a navigation graph with a welcome screen, drawer navigation, the analysis/action-steps
-slice, account/legal/subscription screens, and a daily legal-content-refresh `WorkManager` job.
+slice, and account/legal/subscription screens.
 `LegalAnalysisViewModelTest` (21 tests, all passing) remains the executable spec for the pipeline;
 treat it as authoritative when changing any of these classes.
+
+A daily legal-content-refresh job (`LegalContentRefreshScheduler`/`LegalContentSyncRepository`,
+WorkManager, and the `INTERNET` permission) was scaffolded and then removed: it scheduled a
+worker whose `doWork()` was a hard-coded no-op, because no backend to sync from was ever built.
+Shipping a scheduled job that does nothing is worse than shipping nothing — do not re-add this
+wiring until there is an actual `LegalContentSyncRepository` implementation backed by a real,
+versioned content source (see `docs/legal-content-refresh-architecture.md` for the intended
+design). The `VerifiedContentSeed` local dataset remains the only source of action-step content.
 
 Implementation notes on the two data sources:
 - `ActionStepDao` is backed by Room (`data.local.db.PocketLawbookDatabase`,
