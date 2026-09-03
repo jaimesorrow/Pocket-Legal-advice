@@ -1,28 +1,17 @@
 /**
  * Alaska's Pocket Lawbook — subscription entitlement backend.
  *
- * ═══════════════════════════════════════════════════════════════════════════
- * NOT YET DEPLOYED. This is written to be deployable once a Firebase project
- * and a Play Console account exist. It cannot be run or tested from the repo
- * alone — it needs a service account with Play Developer API access, a
- * published subscription product, and a Pub/Sub topic wired to Play's
- * real-time developer notifications.
- *
- * WHY THIS EXISTS AT ALL: the Android client must never be the authority on
- * whether someone has paid. The client can only ever say "a purchase flow
- * completed here", which is trivially faked by patching the APK. This service
- * validates the purchase token with Google directly and records entitlement
- * against the user's uid, and gated content is served only against that record.
- * ═══════════════════════════════════════════════════════════════════════════
- *
- * Deploy:  firebase deploy --only functions
+ * The Android client is never the legal-content authority. Legal source
+ * monitoring and publication happen server-side.
  */
 
 const functions = require("firebase-functions/v2");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onMessagePublished } = require("firebase-functions/v2/pubsub");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const admin = require("firebase-admin");
 const { google } = require("googleapis");
+const { inspectAllSources } = require("./legalIngestion");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -30,12 +19,7 @@ const db = admin.firestore();
 const PACKAGE_NAME = "com.pocketlawbook.alaska";
 const SUBSCRIPTION_PRODUCT_ID = "pocket_lawbook_monthly";
 
-/** Play subscription states that mean "let them in". */
-const ENTITLING_STATES = new Set([
-  1, // SUBSCRIPTION_STATE_ACTIVE
-  2, // SUBSCRIPTION_STATE_CANCELED — paid through the end of the period
-  4, // SUBSCRIPTION_STATE_IN_GRACE_PERIOD — payment failing, still has access
-]);
+const ENTITLING_STATES = new Set([1, 2, 4]);
 
 async function playApi() {
   const auth = new google.auth.GoogleAuth({
@@ -44,10 +28,6 @@ async function playApi() {
   return google.androidpublisher({ version: "v3", auth: await auth.getClient() });
 }
 
-/**
- * Writes the entitlement record the app reads. This document is the single
- * source of truth for "may this user read case law".
- */
 async function writeEntitlement(uid, { active, expiryMillis, purchaseToken, state }) {
   await db.collection("entitlements").doc(uid).set(
     {
@@ -62,64 +42,38 @@ async function writeEntitlement(uid, { active, expiryMillis, purchaseToken, stat
   );
 }
 
-/**
- * Called by the app right after a purchase completes locally, and again on
- * "restore purchases". Validates the token with Google before granting anything.
- */
 exports.validatePurchase = onCall(async (request) => {
   const uid = request.auth && request.auth.uid;
-  if (!uid) {
-    throw new HttpsError("unauthenticated", "Sign in before validating a purchase.");
-  }
+  if (!uid) throw new HttpsError("unauthenticated", "Sign in before validating a purchase.");
 
   const purchaseToken = request.data && request.data.purchaseToken;
-  if (!purchaseToken) {
-    throw new HttpsError("invalid-argument", "purchaseToken is required.");
-  }
+  if (!purchaseToken) throw new HttpsError("invalid-argument", "purchaseToken is required.");
 
   let subscription;
   try {
     const api = await playApi();
-    const res = await api.purchases.subscriptionsv2.get({
-      packageName: PACKAGE_NAME,
-      token: purchaseToken,
-    });
+    const res = await api.purchases.subscriptionsv2.get({ packageName: PACKAGE_NAME, token: purchaseToken });
     subscription = res.data;
   } catch (err) {
     functions.logger.error("Play validation failed", { uid, err: err.message });
     throw new HttpsError("internal", "Could not verify the purchase with Google Play.");
   }
 
-  // Refuse a token that belongs to a different product.
   const lineItems = subscription.lineItems || [];
-  const matchesProduct = lineItems.some((li) => li.productId === SUBSCRIPTION_PRODUCT_ID);
-  if (!matchesProduct) {
+  if (!lineItems.some((li) => li.productId === SUBSCRIPTION_PRODUCT_ID)) {
     throw new HttpsError("failed-precondition", "That purchase is for a different product.");
   }
 
-  // Refuse a token already bound to a different account, so one purchase
-  // cannot unlock many accounts.
-  const existing = await db
-    .collection("entitlements")
-    .where("purchaseToken", "==", purchaseToken)
-    .get();
-  const boundElsewhere = existing.docs.some((d) => d.id !== uid);
-  if (boundElsewhere) {
+  const existing = await db.collection("entitlements").where("purchaseToken", "==", purchaseToken).get();
+  if (existing.docs.some((d) => d.id !== uid)) {
     throw new HttpsError("already-exists", "That purchase is already linked to another account.");
   }
 
   const state = subscription.subscriptionState;
-  const active = ENTITLING_STATES.has(
-    typeof state === "number" ? state : Number(state)
-  );
-  const expiryMillis =
-    lineItems.length > 0 && lineItems[0].expiryTime
-      ? Date.parse(lineItems[0].expiryTime)
-      : null;
-
+  const active = ENTITLING_STATES.has(typeof state === "number" ? state : Number(state));
+  const expiryMillis = lineItems[0] && lineItems[0].expiryTime ? Date.parse(lineItems[0].expiryTime) : null;
   await writeEntitlement(uid, { active, expiryMillis, purchaseToken, state });
 
-  // Acknowledge, or Play refunds the purchase automatically after 3 days.
   if (subscription.acknowledgementState === 1) {
     try {
       const api = await playApi();
@@ -137,76 +91,110 @@ exports.validatePurchase = onCall(async (request) => {
   return { entitled: active, expiresAt: expiryMillis };
 });
 
-/**
- * Play real-time developer notifications.
- *
- * Without this, entitlement drifts: a cancellation, refund, or failed renewal
- * would not reach the app until the user next signed in, so people would keep
- * access they no longer pay for and lose access they do.
- */
 exports.playNotifications = onMessagePublished("play-billing-notifications", async (event) => {
   const raw = event.data.message.data;
   if (!raw) return;
-
   const payload = JSON.parse(Buffer.from(raw, "base64").toString("utf8"));
   const notification = payload.subscriptionNotification;
   if (!notification) return;
 
   const purchaseToken = notification.purchaseToken;
-  const snapshot = await db
-    .collection("entitlements")
-    .where("purchaseToken", "==", purchaseToken)
-    .limit(1)
-    .get();
-
-  if (snapshot.empty) {
-    functions.logger.warn("Notification for unknown purchase token");
-    return;
-  }
+  const snapshot = await db.collection("entitlements").where("purchaseToken", "==", purchaseToken).limit(1).get();
+  if (snapshot.empty) return;
 
   const uid = snapshot.docs[0].id;
-
-  let subscription;
   try {
     const api = await playApi();
-    const res = await api.purchases.subscriptionsv2.get({
-      packageName: PACKAGE_NAME,
-      token: purchaseToken,
-    });
-    subscription = res.data;
+    const res = await api.purchases.subscriptionsv2.get({ packageName: PACKAGE_NAME, token: purchaseToken });
+    const subscription = res.data;
+    const state = subscription.subscriptionState;
+    const active = ENTITLING_STATES.has(typeof state === "number" ? state : Number(state));
+    const lineItems = subscription.lineItems || [];
+    const expiryMillis = lineItems[0] && lineItems[0].expiryTime ? Date.parse(lineItems[0].expiryTime) : null;
+    await writeEntitlement(uid, { active, expiryMillis, purchaseToken, state });
   } catch (err) {
     functions.logger.error("Play re-check failed", { uid, err: err.message });
-    return;
   }
+});
 
-  const state = subscription.subscriptionState;
-  const active = ENTITLING_STATES.has(
-    typeof state === "number" ? state : Number(state)
-  );
-  const lineItems = subscription.lineItems || [];
-  const expiryMillis =
-    lineItems.length > 0 && lineItems[0].expiryTime
-      ? Date.parse(lineItems[0].expiryTime)
-      : null;
-
-  await writeEntitlement(uid, { active, expiryMillis, purchaseToken, state });
-  functions.logger.info("Entitlement updated from Play notification", { uid, active, state });
+exports.deleteAccount = onCall(async (request) => {
+  const uid = request.auth && request.auth.uid;
+  if (!uid) throw new HttpsError("unauthenticated", "Sign in first.");
+  await db.collection("entitlements").doc(uid).delete();
+  await admin.auth().deleteUser(uid);
+  return { deleted: true };
 });
 
 /**
- * Account deletion. Google Play requires an in-app path AND a web path for any
- * app that lets users create accounts.
+ * Runs every day. It monitors only explicitly allow-listed authoritative legal
+ * sources. A changed source is recorded as a pending change; it is NOT silently
+ * promoted to user-facing legal text. Promotion requires the validation/content
+ * publication pipeline to accept a versioned dataset.
  */
-exports.deleteAccount = onCall(async (request) => {
-  const uid = request.auth && request.auth.uid;
-  if (!uid) {
-    throw new HttpsError("unauthenticated", "Sign in first.");
+exports.dailyLegalSourceCheck = onSchedule(
+  {
+    schedule: "15 3 * * *",
+    timeZone: "America/Anchorage",
+    retryCount: 2,
+    maxInstances: 1,
+  },
+  async () => {
+    const startedAt = admin.firestore.Timestamp.now();
+    const results = await inspectAllSources();
+    const checked = results.filter((r) => r.status === "CHECKED");
+    const failed = results.filter((r) => r.status === "FAILED");
+
+    const previousSnapshot = await db.collection("legal_source_state").get();
+    const previous = new Map(previousSnapshot.docs.map((d) => [d.id, d.data()]));
+    const changes = [];
+
+    for (const result of checked) {
+      const old = previous.get(result.id);
+      const changed = Boolean(old && old.contentHash && old.contentHash !== result.contentHash);
+
+      await db.collection("legal_source_state").doc(result.id).set({
+        ...result,
+        previousHash: old ? old.contentHash || null : null,
+        changed,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
+
+      if (changed) {
+        changes.push({
+          sourceId: result.id,
+          jurisdiction: result.jurisdiction,
+          sourceType: result.sourceType,
+          authority: result.authority,
+          previousHash: old.contentHash,
+          currentHash: result.contentHash,
+          detectedAt: result.checkedAt,
+          validationStatus: "PENDING_VALIDATION",
+        });
+      }
+    }
+
+    for (const change of changes) {
+      await db.collection("legal_change_events").add({
+        ...change,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    }
+
+    await db.collection("legal_update_runs").add({
+      startedAt,
+      completedAt: admin.firestore.FieldValue.serverTimestamp(),
+      checkedCount: checked.length,
+      failedCount: failed.length,
+      changedCount: changes.length,
+      failedSources: failed.map((r) => ({ id: r.id, error: r.error })),
+      status: failed.length === results.length ? "FAILED" : "COMPLETED",
+      publication: "NO_AUTOMATIC_TEXT_PROMOTION",
+    });
+
+    functions.logger.info("Daily legal source check completed", {
+      checked: checked.length,
+      failed: failed.length,
+      changed: changes.length,
+    });
   }
-
-  await db.collection("entitlements").doc(uid).delete();
-  await admin.auth().deleteUser(uid);
-
-  // Note: this does not cancel the Play subscription. The user cancels that in
-  // Play, and the terms have to say so.
-  return { deleted: true };
-});
+);
