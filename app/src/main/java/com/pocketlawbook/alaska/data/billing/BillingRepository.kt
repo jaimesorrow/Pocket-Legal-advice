@@ -1,5 +1,6 @@
 package com.pocketlawbook.alaska.data.billing
 
+import android.app.Activity
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -35,11 +36,12 @@ interface BillingRepository {
     suspend fun connect()
 
     /**
-     * Launch the Play purchase flow. Success here means the purchase completed
-     * locally — it does NOT mean the user is entitled. The purchase token still
-     * has to be validated server-side.
+     * Launch the Play purchase flow from [activity]. Play's launchBillingFlow
+     * requires the foreground Activity, so this can't be launched headlessly.
+     * Success here means the purchase completed locally — it does NOT mean the
+     * user is entitled. The purchase token still has to be validated server-side.
      */
-    suspend fun launchPurchaseFlow(): Result<Unit>
+    suspend fun launchPurchaseFlow(activity: Activity): Result<Unit>
 
     /**
      * Re-query Play for existing purchases and re-submit their tokens for
@@ -96,7 +98,7 @@ class StubBillingRepository(
         _formattedPrice.value = "$10.00"
     }
 
-    override suspend fun launchPurchaseFlow(): Result<Unit> {
+    override suspend fun launchPurchaseFlow(activity: Activity): Result<Unit> {
         _purchaseState.value = PurchaseState.PurchasedAwaitingValidation
         onPurchaseCompleted()
         _purchaseState.value = PurchaseState.Ready

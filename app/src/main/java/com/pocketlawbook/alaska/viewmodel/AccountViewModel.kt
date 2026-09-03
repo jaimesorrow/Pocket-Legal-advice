@@ -27,17 +27,11 @@ class AccountViewModel(
         repository.signUp(email, password)
     }
 
-    fun subscribe(onSuccess: () -> Unit = {}) = submit(onSuccess) { repository.subscribe() }
-
     fun signOut() {
         viewModelScope.launch {
             repository.signOut()
             _errorMessage.value = null
         }
-    }
-
-    fun cancelSubscription() {
-        viewModelScope.launch { repository.cancelSubscription() }
     }
 
     fun clearError() {

@@ -33,6 +33,27 @@ wiring until there is an actual `LegalContentSyncRepository` implementation back
 versioned content source (see `docs/legal-content-refresh-architecture.md` for the intended
 design). The `VerifiedContentSeed` local dataset remains the only source of action-step content.
 
+**Account and billing wiring:** `AppContainer` picks its `AccountRepository`/`BillingRepository`
+implementations automatically, based on `AppContainer.firebaseConfigured`
+(`FirebaseApp.getApps(context).isNotEmpty()`) — no manual flag or code change:
+- No `google-services.json` yet → `InMemoryAccountRepository` / `StubBillingRepository`, the
+  original in-memory demo stubs (authenticate nobody, "purchase" just flips local state).
+- `google-services.json` present **and** `alias(libs.plugins.google.services)` uncommented in
+  `app/build.gradle.kts` → `FirebaseAuthAccountRepository` (real Firebase Auth, with subscription
+  state read live from the server-written `entitlements/{uid}` Firestore document — it never sets
+  entitlement itself) and `PlayBillingRepository` (real Play Billing Library 9, which only ever
+  reports "a purchase flow completed here" and hands the token to the `validatePurchase` Cloud
+  Function in `functions/index.js` for server-side validation against the Play Developer API).
+  `PlayBillingRepository` still needs an actual subscription product
+  (`BillingConstants.SUBSCRIPTION_PRODUCT_ID`) created in Play Console before `connect()` finds
+  anything to sell — it reports that clearly rather than pretending to work.
+- Both real implementations are **written but unverified against a real build** — this environment
+  has no Android SDK, so `./gradlew build`/`test` have never actually been run against them. Treat
+  them as a careful first draft and compile-check locally before relying on them.
+- Cancellation happens through `BillingRepository.manageSubscriptionUrl()` (Play's own
+  subscription-management page), never in-app — there is nothing for the client to flip locally
+  either way, by design.
+
 Implementation notes on the two data sources:
 - `ActionStepDao` is backed by Room (`data.local.db.PocketLawbookDatabase`,
   `RoomActionStepDao`), seeded on first launch from `VerifiedContentSeed` — which is explicitly

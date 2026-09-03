@@ -1,5 +1,8 @@
 package com.pocketlawbook.alaska.ui.navigation
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -21,6 +24,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -48,6 +52,7 @@ import com.pocketlawbook.alaska.ui.screen.PaywallScreen
 import com.pocketlawbook.alaska.ui.screen.WelcomeScreen
 import com.pocketlawbook.alaska.viewmodel.AccountViewModel
 import com.pocketlawbook.alaska.viewmodel.LegalAnalysisViewModel
+import com.pocketlawbook.alaska.viewmodel.SubscriptionViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,6 +67,10 @@ fun PocketLawbookApp(container: AppContainer) {
     )
     val accountState by accountViewModel.state.collectAsStateWithLifecycle()
     val accountError by accountViewModel.errorMessage.collectAsStateWithLifecycle()
+
+    val subscriptionViewModel: SubscriptionViewModel = viewModel(
+        factory = SubscriptionViewModel.Factory(container.billingRepository)
+    )
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -129,6 +138,7 @@ fun PocketLawbookApp(container: AppContainer) {
                     navController = navController,
                     container = container,
                     accountViewModel = accountViewModel,
+                    subscriptionViewModel = subscriptionViewModel,
                     accountError = accountError,
                     accountState = accountState,
                     onNavigate = ::go
@@ -143,12 +153,27 @@ private fun AppNavHost(
     navController: NavHostController,
     container: AppContainer,
     accountViewModel: AccountViewModel,
+    subscriptionViewModel: SubscriptionViewModel,
     accountError: String?,
     accountState: AccountState,
     onNavigate: (String) -> Unit
 ) {
     val unlocked = accountState.hasPremiumAccess
     val lockReason = accountState.lockReason
+    val context = LocalContext.current
+
+    // Play Billing needs the foreground Activity to launch its purchase sheet;
+    // the stub billing repository ignores this and completes locally instead.
+    fun launchPurchase() {
+        (context as? Activity)?.let(subscriptionViewModel::purchase)
+    }
+
+    // Cancellation happens in Play's own subscription-management screen, never
+    // in-app — the client is never the authority on entitlement, so it has
+    // nothing to flip locally.
+    fun openManageSubscription() {
+        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(subscriptionViewModel.manageSubscriptionUrl())))
+    }
 
     NavHost(navController = navController, startDestination = Routes.WELCOME) {
 
@@ -253,8 +278,8 @@ private fun AppNavHost(
                 onSignIn = { onNavigate(Routes.SIGN_IN) },
                 onSignUp = { onNavigate(Routes.SIGN_UP) },
                 onSignOut = accountViewModel::signOut,
-                onSubscribe = { accountViewModel.subscribe() },
-                onCancel = accountViewModel::cancelSubscription
+                onSubscribe = ::launchPurchase,
+                onCancel = ::openManageSubscription
             )
         }
 
@@ -273,7 +298,7 @@ private fun AppNavHost(
         composable(Routes.PAYWALL) {
             PaywallScreen(
                 state = accountState,
-                onSubscribe = { accountViewModel.subscribe() },
+                onSubscribe = ::launchPurchase,
                 onSignUp = { onNavigate(Routes.SIGN_UP) },
                 onSignIn = { onNavigate(Routes.SIGN_IN) }
             )

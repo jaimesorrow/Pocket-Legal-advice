@@ -3,6 +3,9 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    // Uncomment once app/google-services.json exists — applying this plugin
+    // without that file present fails the build immediately.
+    // alias(libs.plugins.google.services)
 }
 
 android {
@@ -67,6 +70,20 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+
+    // Firebase Auth + Firestore (entitlement reads) + Functions (purchase
+    // validation calls). Compiles and links fine with no google-services.json;
+    // only calling FirebaseAuth.getInstance() etc. at runtime needs it, and
+    // AppContainer only does that once a default FirebaseApp actually exists.
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.functions.ktx)
+    implementation(libs.kotlinx.coroutines.play.services)
+
+    // Play Billing. No config file needed — it just has nothing real to sell
+    // until a subscription product exists in Play Console.
+    implementation(libs.androidx.billing.ktx)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

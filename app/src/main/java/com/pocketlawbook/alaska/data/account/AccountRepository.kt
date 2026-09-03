@@ -29,8 +29,15 @@ interface AccountRepository {
     suspend fun signIn(email: String, password: String): Result<Unit>
     suspend fun signUp(email: String, password: String): Result<Unit>
     suspend fun signOut()
+
+    /**
+     * Grants a subscription locally. Only meaningful for a stub/demo
+     * implementation — a real implementation must refuse this (see
+     * FirebaseAuthAccountRepository) because entitlement is never something the
+     * client gets to set. Buy through [com.pocketlawbook.alaska.data.billing.BillingRepository];
+     * cancel through [com.pocketlawbook.alaska.data.billing.BillingRepository.manageSubscriptionUrl].
+     */
     suspend fun subscribe(): Result<Unit>
-    suspend fun cancelSubscription()
 }
 
 class InMemoryAccountRepository : AccountRepository {
@@ -65,13 +72,6 @@ class InMemoryAccountRepository : AccountRepository {
         }
         _state.value = current.copy(subscription = SubscriptionStatus.Active(renewsOn = "in 30 days"))
         return Result.success(Unit)
-    }
-
-    override suspend fun cancelSubscription() {
-        val current = _state.value
-        if (current is AccountState.SignedIn) {
-            _state.value = current.copy(subscription = SubscriptionStatus.None)
-        }
     }
 
     private fun validate(email: String, password: String): Result<Unit> = when {
