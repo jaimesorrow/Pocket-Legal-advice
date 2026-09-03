@@ -42,23 +42,19 @@ data class DrawerEntry(
 /**
  * Drawer contents, in display order.
  *
- * The account controls sit at the top because they are what unlocks the locked
- * half of the list below them — a user who taps a locked item is sent here.
+ * Accounts, billing, case law, and AI chat are not shipped features — the code
+ * for them exists (AccountRepository, BillingRepository, GatedScreens) but is
+ * intentionally not reachable from here until each has a real backend behind
+ * it. Surfacing a lock icon for a feature with nothing behind the lock is
+ * worse than not mentioning it. See CLAUDE.md.
  */
 object DrawerSections {
 
-    val account = listOf(
-        DrawerEntry(Routes.SIGN_IN, "Sign in"),
-        DrawerEntry(Routes.ACCOUNT, "User account"),
-        DrawerEntry(Routes.SIGN_UP, "Sign up")
-    )
+    val account = emptyList<DrawerEntry>()
 
     val library = listOf(
         DrawerEntry(Routes.ALASKA_LAW, "Alaska law"),
-        DrawerEntry(Routes.FEDERAL_LAW, "Federal law"),
-        DrawerEntry(Routes.ALASKA_CASE_LAW, "Alaska case law", PremiumFeature.ALASKA_CASE_LAW),
-        DrawerEntry(Routes.FEDERAL_CASE_LAW, "Federal case law", PremiumFeature.FEDERAL_CASE_LAW),
-        DrawerEntry(Routes.AI_CHAT, "AI chat", PremiumFeature.AI_CHAT)
+        DrawerEntry(Routes.FEDERAL_LAW, "Federal law")
     )
 
     /** Always reachable. Play requires the privacy policy to be available in-app. */

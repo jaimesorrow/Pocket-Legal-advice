@@ -27,18 +27,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pocketlawbook.alaska.R
 import com.pocketlawbook.alaska.data.account.AccountState
-import com.pocketlawbook.alaska.data.account.SubscriptionPlan
 import com.pocketlawbook.alaska.data.account.hasPremiumAccess
 import com.pocketlawbook.alaska.ui.component.SectionLabel
 
 /**
  * The left navigation drawer.
  *
- * Entries appear in a fixed order: the three account controls, then Alaska law,
- * federal law, Alaska case law, federal case law, and AI chat. The last three
- * carry a lock until the user is both signed in and subscribed. They stay visible
- * and tappable while locked on purpose — hiding them would leave no way to
- * discover what the subscription buys.
+ * Currently just Alaska law, federal law, and Legal & privacy — the whole free
+ * tier, and the whole app. Accounts, subscriptions, case law, and AI chat are
+ * not shipped; DrawerSections.library entries can carry a [PremiumFeature] and
+ * this composable still honors [DrawerEntry.requires] via [onLockedClick] so
+ * those can come back once there's a real backend, but nothing sets that field
+ * today. See CLAUDE.md.
  */
 @Composable
 fun AppDrawer(
@@ -71,26 +71,6 @@ fun AppDrawer(
             HorizontalDivider()
 
             SectionLabel(
-                text = "Account",
-                modifier = Modifier.padding(start = 28.dp, top = 18.dp, bottom = 6.dp)
-            )
-            DrawerSections.account.forEach { entry ->
-                val label = when {
-                    entry.route == Routes.SIGN_IN && accountState is AccountState.SignedIn -> "Sign out"
-                    else -> entry.label
-                }
-                DrawerRow(
-                    label = label,
-                    selected = currentRoute == entry.route,
-                    locked = false,
-                    onClick = { onNavigate(entry.route) }
-                )
-            }
-
-            Spacer(Modifier.height(10.dp))
-            HorizontalDivider()
-
-            SectionLabel(
                 text = "Law",
                 modifier = Modifier.padding(start = 28.dp, top = 18.dp, bottom = 6.dp)
             )
@@ -120,21 +100,6 @@ fun AppDrawer(
                     locked = false,
                     onClick = { onNavigate(entry.route) }
                 )
-            }
-
-            if (!unlocked) {
-                Spacer(Modifier.height(14.dp))
-                HorizontalDivider()
-                Column(modifier = Modifier.padding(start = 28.dp, top = 16.dp, end = 24.dp)) {
-                    SectionLabel(text = "Subscription")
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        text = "${SubscriptionPlan.FULL_DISPLAY} unlocks Alaska and federal case " +
-                            "law and the AI chat.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
             }
         }
     }

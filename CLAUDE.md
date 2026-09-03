@@ -13,17 +13,48 @@ with the jurisdiction it comes from (`ALASKA` or `FEDERAL`), and the UI must dis
 answer rests on. Never add content from another state's law, and never let an answer imply
 nationwide applicability when it is Alaska-specific.
 
-**No accounts:** the app has no sign-in, no user profile, and no server-side identity. It launches
-straight to the main screen. This is deliberate — users asking about arrests or evictions should not
-have that tied to an account. Do not introduce auth without an explicit decision to do so.
+**No accounts:** nothing reachable in the app today requires signing in, has a user profile, or
+touches server-side identity. It launches straight to the main screen. This is deliberate — users
+asking about arrests or evictions should not have that tied to an account. Do not wire
+sign-in/account/paywall screens back into `DrawerSections` or any other navigation path without an
+explicit decision to do so.
 
-**Current repository state:** the core pipeline described below is implemented and building.
-`AppContainer` (hand-rolled DI, no Hilt) wires a Room-backed `ActionStepDao`, an on-device
-`LegalApiService` implementation, and the `LegalAnalysisViewModel` together; `PocketLawbookApp`
-provides a navigation graph with a welcome screen, drawer navigation, the analysis/action-steps
-slice, account/legal/subscription screens, and a daily legal-content-refresh `WorkManager` job.
+**Current repository state:** the zero-hallucination pipeline described below is implemented,
+tested, and is the entire shipped feature set. `AppContainer` (hand-rolled DI, no Hilt) wires a
+Room-backed `ActionStepDao`, an on-device `LegalApiService` implementation, and the
+`LegalAnalysisViewModel` together; `PocketLawbookApp`'s drawer currently exposes only Alaska law,
+federal law, the analysis/action-steps slice, and the legal/privacy screens.
 `LegalAnalysisViewModelTest` (21 tests, all passing) remains the executable spec for the pipeline;
 treat it as authoritative when changing any of these classes.
+
+**Unshipped scaffolding — present in the codebase but deliberately not wired into navigation:**
+`AccountRepository`/`AccountViewModel`/`AccountScreens` (sign-in, sign-up, account), `BillingRepository`
+(a stub that always reports success — no Play Console product exists), `GatedScreens`
+(`CaseLawScreen`, `AiChatScreen` — no case-law corpus or chat backend exists), and
+`LegalContentSyncRepository`/`LegalContentRefreshScheduler` (a sync contract with zero
+implementations; the `MainActivity` call that scheduled it is commented out). None of these are
+routes a real build reaches. Do not re-add them to `DrawerSections` or call
+`LegalContentRefreshScheduler.schedule` until each has a real backend behind it — see the "Direction"
+section below.
+
+**Content is 5 entries and not attorney-reviewed.** `VerifiedContentSeed` is a demonstration set;
+see the warning on that object. Do not treat its presence as evidence the content is safe to show to
+a real user in a crisis. It needs both more coverage and a licensed Alaska attorney's sign-off
+before any public release.
+
+## Direction (do not build out of order)
+
+1. **Harden the analyzer and add an honest disclaimer.** `OnDeviceLegalAnalyzer` is keyword
+   substring matching (see that file) — it will silently return zero matches for real situations
+   phrased differently than its rule list. This is the single biggest risk in the app: a user in
+   crisis who gets an empty result has no way to know whether that means "no violation" or "the
+   matcher didn't understand you." Fix this before anything else.
+2. **Grow and get the content reviewed.** More entries, each cited, each attorney-reviewed, before
+   any of this reaches a real user.
+3. **Only after 1 and 2**, consider re-wiring accounts/billing/case-law/AI-chat — and only with a
+   real backend plan (real auth + entitlement server, a Play Console product, a licensed case-law
+   corpus, a citation-constrained chat design consistent with the pipeline below). Building more
+   stub UI for these before 1 and 2 are done is scope creep on a feature set that isn't safe yet.
 
 Implementation notes on the two data sources:
 - `ActionStepDao` is backed by Room (`data.local.db.PocketLawbookDatabase`,
