@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -21,22 +19,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pocketlawbook.alaska.R
-import com.pocketlawbook.alaska.data.account.SubscriptionPlan
 import com.pocketlawbook.alaska.ui.component.SectionLabel
 
 /**
  * The main welcome screen and the app's start destination.
  *
- * It leads with the free thing that helps immediately — describing what happened —
- * rather than with a signup wall. The subscription is introduced further down, as
- * an extension, which is also the honest description of what it is.
+ * It leads with the free thing that helps immediately — describing what happened.
+ * No subscription/case-law/AI-chat teaser here: those aren't shipped (see
+ * CLAUDE.md's "Unshipped scaffolding"), so this screen doesn't offer a path to them.
  */
 @Composable
 fun WelcomeScreen(
     onAnalyze: () -> Unit,
     onBrowseAlaska: () -> Unit,
     onBrowseFederal: () -> Unit,
-    onSeeSubscription: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -82,39 +78,6 @@ fun WelcomeScreen(
         }
         OutlinedButton(onClick = onBrowseFederal, modifier = Modifier.fillMaxWidth()) {
             Text("Federal law")
-        }
-
-        Spacer(Modifier.height(12.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-        ) {
-            Column(
-                modifier = Modifier.padding(18.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                SectionLabel("Case law extension")
-                Text(
-                    text = "Alaska and federal case law, plus AI chat",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "Search decided cases from Alaska and the federal courts, and ask the " +
-                        "AI chat questions that look up the statutes and cases behind the answer.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = "${SubscriptionPlan.FULL_DISPLAY}, with an account.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                OutlinedButton(onClick = onSeeSubscription, modifier = Modifier.fillMaxWidth()) {
-                    Text("See what's included")
-                }
-            }
         }
 
         Spacer(Modifier.height(8.dp))
