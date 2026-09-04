@@ -156,8 +156,7 @@ private fun AppNavHost(
             WelcomeScreen(
                 onAnalyze = { onNavigate(Routes.ANALYZE) },
                 onBrowseAlaska = { onNavigate(Routes.ALASKA_LAW) },
-                onBrowseFederal = { onNavigate(Routes.FEDERAL_LAW) },
-                onSeeSubscription = { onNavigate(Routes.PAYWALL) }
+                onBrowseFederal = { onNavigate(Routes.FEDERAL_LAW) }
             )
         }
 
