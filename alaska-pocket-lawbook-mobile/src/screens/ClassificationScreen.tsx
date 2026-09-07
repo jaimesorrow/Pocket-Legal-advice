@@ -5,7 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
-import { StatuteCard } from '../components/StatuteCard';
+import { StatuteRow } from '../components/StatuteRow';
 import { JurisdictionBadge } from '../components/JurisdictionBadge';
 import { getClassificationById, getEntriesByClassification } from '../data/legalData';
 
@@ -40,7 +40,17 @@ export function ClassificationScreen({ route, navigation }: Props) {
             <Text style={[typography.screenTitle, styles.headerTitle]}>{classification.name}</Text>
           </View>
         }
-        renderItem={({ item }) => <StatuteCard entry={item} />}
+        renderItem={({ item, index }) => (
+          <StatuteRow
+            entry={item}
+            onPress={() =>
+              navigation.navigate('StatuteDetail', {
+                entryIds: entries.map((e) => e.id),
+                index,
+              })
+            }
+          />
+        )}
       />
     </SafeAreaView>
   );

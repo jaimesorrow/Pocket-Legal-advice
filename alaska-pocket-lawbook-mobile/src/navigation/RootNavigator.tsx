@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from './types';
 import { HomeScreen } from '../screens/HomeScreen';
 import { ClassificationScreen } from '../screens/ClassificationScreen';
+import { StatuteScreen } from '../screens/StatuteScreen';
 import { colors } from '../theme/colors';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -32,6 +33,7 @@ export function RootNavigator() {
       >
         <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Classification" component={ClassificationScreen} />
+        <Stack.Screen name="StatuteDetail" component={StatuteScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
