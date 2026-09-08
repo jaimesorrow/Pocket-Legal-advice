@@ -75,11 +75,19 @@ fun PocketLawbookTheme(
 ) {
     val scheme = if (darkTheme) DarkScheme else LightScheme
     val view = LocalView.current
+    // The status bar can only be styled when this is hosted in a real Activity
+    // window - guarding the cast (rather than asserting it) means this
+    // composable also renders correctly in a preview/screenshot-test host,
+    // where LocalView's context is never an Activity. Every real screen in
+    // this app is hosted inside MainActivity, so production behavior here is
+    // unchanged.
     if (!view.isInEditMode) {
         SideEffect {
-            val window = (view.context as Activity).window
-            window.statusBarColor = scheme.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            val window = (view.context as? Activity)?.window
+            if (window != null) {
+                window.statusBarColor = scheme.background.toArgb()
+                WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            }
         }
     }
     MaterialTheme(colorScheme = scheme, content = content)
