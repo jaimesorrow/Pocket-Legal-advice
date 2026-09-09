@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "Alaska's Pocket Lawbook",
+    "slug": "alaska-pocket-lawbook-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.pocketlawbook.alaska.mobile"
+    },
+    "android": {
+      "package": "com.pocketlawbook.alaska.mobile"
+    }
+  }
+}
