@@ -75,10 +75,13 @@ dependencies {
     // validation calls). Compiles and links fine with no google-services.json;
     // only calling FirebaseAuth.getInstance() etc. at runtime needs it, and
     // AppContainer only does that once a default FirebaseApp actually exists.
+    // Note: use the base artifacts, not -ktx — Firebase merged the KTX
+    // extensions into the main modules and dropped the standalone -ktx
+    // artifacts from the BOM as of firebase-bom 34.0.0 (July 2025).
     implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.auth.ktx)
-    implementation(libs.firebase.firestore.ktx)
-    implementation(libs.firebase.functions.ktx)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.functions)
     implementation(libs.kotlinx.coroutines.play.services)
 
     // Play Billing. No config file needed — it just has nothing real to sell
