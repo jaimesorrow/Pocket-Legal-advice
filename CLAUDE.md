@@ -64,6 +64,14 @@ Implementation notes on the two data sources:
   side of the pipeline cannot itself hallucinate. A real network-backed implementation can still be
   swapped in later; `LegalAnalysisRepository` only depends on the `LegalApiService` interface.
 
+## CI
+
+`.github/workflows/android-ci.yml` (GitHub Actions) runs lint + unit tests on every branch, plus
+`assembleDebug` on non-main branches and `assembleRelease` on main, both gated on lint/unit-test
+passing. This replaced a CircleCI config (`.circleci/config.yml`, same four jobs) that this session
+had no way to observe — no CircleCI connector or dashboard access was available — so its actual
+pass/fail state was unverifiable from here. GitHub Actions runs are inspectable directly.
+
 ## Build & test commands
 
 The Gradle wrapper is committed (pinned to Gradle 8.11.1). An Android SDK with platform 35 and
